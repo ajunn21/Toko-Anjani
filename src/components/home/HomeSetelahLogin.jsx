@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Home, Package, Users, CreditCard, Star, ChevronRight, Clock, Gift, Truck } from 'react-feather';
@@ -11,46 +11,10 @@ export default function HomeSetelahLogin({ user, addToCart }) {
 
   // Data produk populer
   const popularProducts = [
-    {
-      id: 1,
-      name: 'Beras Premium 5kg',
-      price: 65000,
-      discount: 60000,
-      rating: 4.8,
-      stock: 10,
-      image: 'https://placehold.co/150x150',
-      favorite: false
-    },
-    {
-      id: 2,
-      name: 'Minyak Goreng 2L',
-      price: 32000,
-      discount: null,
-      rating: 4.5,
-      stock: 15,
-      image: 'https://placehold.co/150x150',
-      favorite: false
-    },
-    {
-      id: 3,
-      name: 'Gula Pasir 1kg',
-      price: 15000,
-      discount: null,
-      rating: 4.7,
-      stock: 20,
-      image: 'https://placehold.co/150x150',
-      favorite: false
-    },
-    {
-      id: 4,
-      name: 'Telur Ayam 1kg',
-      price: 28000,
-      discount: 25000,
-      rating: 4.6,
-      stock: 8,
-      image: 'https://placehold.co/150x150',
-      favorite: false
-    }
+    { id: 1, name: 'Indomie Goreng', price: 3000, discount: 2500, rating: 4.5, stock: 10, favorite: true, category: 'Sembako' },
+    { id: 2, name: 'Aqua Gelas', price: 500, discount: null, rating: 4.8, stock: 50, favorite: false, category: 'Minuman' },
+    { id: 3, name: 'Lifebuoy Sabun', price: 4500, discount: 4000, rating: 4.2, stock: 15, favorite: true, category: 'Perlengkapan Rumah' },
+    { id: 4, name: 'Minyak Goreng', price: 15000, discount: 13500, rating: 4.0, stock: 8, favorite: false, category: 'Sembako' },
   ];
 
   // Data kategori dengan slug
@@ -177,48 +141,7 @@ export default function HomeSetelahLogin({ user, addToCart }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {popularProducts.map((product) => (
-              <motion.div key={product.id} whileHover={{ scale: 1.03 }} className="relative">
-                {/* Favorite Button (dummy) */}
-                <button className="absolute top-2 left-2 p-2 rounded-full text-gray-300 cursor-default z-10" tabIndex={-1} aria-hidden="true" style={{ pointerEvents: 'none' }}>
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-heart"><path d="M20.8 4.6c-1.4-1.4-3.6-1.4-5 0l-.8.8-.8-.8c-1.4-1.4-3.6-1.4-5 0-1.4 1.4-1.4 3.6 0 5l5.8 5.8 5.8-5.8c1.4-1.4 1.4-3.6 0-5z"></path></svg>
-                </button>
-                {/* Share Button (dummy) */}
-                <button className="absolute top-2 right-2 p-2 rounded-full text-gray-400 cursor-default z-10" tabIndex={-1} aria-hidden="true" style={{ pointerEvents: 'none' }}>
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                </button>
-                <div className="h-48 bg-blue-100 flex items-center justify-center cursor-pointer relative">
-                  {product.image ? (
-                    <img src={product.image} alt={product.name} className="h-full w-full object-cover rounded-xl" />
-                  ) : (
-                    <ShoppingBag size={48} className="text-gray-300" />
-                  )}
-                  {product.discount && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      DISKON
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-1 text-blue-700">{product.name}</h3>
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} fill={i < Math.floor(product.rating) ? '#3b82f6' : 'none'} stroke={i < product.rating ? '#3b82f6' : '#d1d5db'} />
-                    ))}
-                    <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
-                  </div>
-                  <div className="flex items-center">
-                    {product.discount ? (
-                      <>
-                        <span className="text-blue-600 font-bold">Rp{product.discount.toLocaleString()}</span>
-                        <span className="text-sm text-gray-500 line-through ml-2">Rp{product.price.toLocaleString()}</span>
-                      </>
-                    ) : (
-                      <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
-                </div>
-              </motion.div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>

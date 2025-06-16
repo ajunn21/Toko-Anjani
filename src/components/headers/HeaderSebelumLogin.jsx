@@ -16,13 +16,15 @@ const HeaderSebelumLogin = () => {
     <>
       <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 text-white shadow-xl">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logo & Lottie */}
-          <div className="flex items-center space-x-2">
-            {/* Logo tanpa animasi */}
-            <Link to="/" className="text-2xl font-extrabold tracking-wide drop-shadow-lg hover:underline focus:outline-none">
-              Toko Anjani
-            </Link>
-          </div>
+          {/* Logo tanpa animasi */}
+          <Link to="/" className="group inline-block">
+            <span className="relative text-2xl font-extrabold tracking-wide cursor-pointer transition-all duration-300 group-hover:scale-105 group-active:scale-95">
+              <span className="transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-blue-700 group-hover:text-transparent group-hover:bg-clip-text">
+                Toko Anjani
+              </span>
+              <span className="block absolute left-0 -bottom-1 h-1 w-0 bg-gradient-to-r from-blue-400 to-blue-700 rounded-full transition-all duration-300 group-hover:w-full"></span>
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 mx-8">

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, CreditCard, Star, ChevronRight, Clock, Gift, Truck, Users } from 'react-feather';
@@ -14,10 +13,6 @@ export default function HomeSebelumLogin() {
     { id: 2, name: 'Aqua Gelas', price: 500, discount: null, rating: 4.8, stock: 50, favorite: false, category: 'Minuman' },
     { id: 3, name: 'Lifebuoy Sabun', price: 4500, discount: 4000, rating: 4.2, stock: 15, favorite: true, category: 'Perlengkapan Rumah' },
     { id: 4, name: 'Minyak Goreng', price: 15000, discount: 13500, rating: 4.0, stock: 8, favorite: false, category: 'Sembako' },
-    { id: 5, name: 'Rinso Detergent', price: 12000, discount: 11000, rating: 4.3, stock: 12, favorite: false, category: 'Perlengkapan Rumah' },
-    { id: 6, name: 'Gula Pasir 1kg', price: 14000, discount: null, rating: 4.1, stock: 20, favorite: false, category: 'Sembako' },
-    { id: 7, name: 'Kopi Kapal Api', price: 8000, discount: 7500, rating: 4.6, stock: 18, favorite: true, category: 'Kopi & Teh' },
-    { id: 8, name: 'Teh Celup Sosro', price: 10000, discount: 9000, rating: 4.4, stock: 25, favorite: false, category: 'Kopi & Teh' },
   ];
 
   // Fitur Toko
@@ -43,17 +38,6 @@ export default function HomeSebelumLogin() {
       icon: <Gift size={32} className="text-green-600" />
     }
   ];
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   // Fungsi untuk navigasi
   const goToLogin = () => {
