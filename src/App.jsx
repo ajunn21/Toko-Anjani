@@ -13,6 +13,7 @@ import HeaderSetelahLogin from './components/headers/HeaderSetelahLogin';
 import Favorit from './components/Favorit';
 import ProfilSaya from './components/ProfilSaya';
 import PesananSaya from './components/PesananSaya';
+import LupaPassword from './components/auth/LupaPassword';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -174,6 +175,11 @@ function App() {
                 <Navigate to="/login" replace />
               )
             }
+          />
+          {/* Lupa Password */}
+          <Route
+            path="/lupa-password"
+            element={<LupaPassword />}
           />
 
           {/* Redirect untuk path lainnya ke halaman utama */}

@@ -171,9 +171,12 @@ const Login = ({ onLogin }) => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                  <span
+                    className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
+                    onClick={() => navigate('/lupa-password')}
+                  >
                     Lupa password?
-                  </a>
+                  </span>
                 </div>
               </div>
 
