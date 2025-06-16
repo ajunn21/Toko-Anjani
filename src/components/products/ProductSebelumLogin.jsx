@@ -3,8 +3,11 @@ import { ShoppingBag, Star, ChevronLeft, ChevronRight, Search } from 'react-feat
 import HeaderSebelumLogin from '../headers/HeaderSebelumLogin';
 import FooterSebelumLogin from '../footers/FooterSebelumLogin';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ProductSebelumLogin = () => {
+  const navigate = useNavigate();
+
   // Daftar kategori
   const categories = [
     'Semua',
@@ -229,7 +232,7 @@ const ProductSebelumLogin = () => {
                     </div>
                     <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
                     <button 
-                      onClick={() => window.location.href = '/login'}
+                      onClick={() => navigate('/login')}
                       className="mt-3 w-full bg-blue-100 text-blue-700 py-2 rounded-md font-medium hover:bg-blue-200 transition-colors"
                     >
                       Tambah ke Keranjang
