@@ -53,6 +53,10 @@ const ProductCard = ({ product }) => {
           ) : (
             <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
           )}
+          {/* tampilkan satuan jika ada */}
+          {product.unit && (
+            <span className="text-xs text-gray-500 ml-2">/ {product.unit}</span>
+          )}
         </div>
         <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
       </div>

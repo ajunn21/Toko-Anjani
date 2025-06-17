@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Home, Package, Users, CreditCard, Star, ChevronRight, Clock, Gift, Truck } from 'react-feather';
+import { ShoppingBag, Home, Package, Users, CreditCard, Star, ChevronRight, Clock, Gift, Truck, Heart, Share2 } from 'react-feather';
 import FooterSetelahLogin from '../footers/FooterSetelahLogin';
-import ProductCard from '../ProductCard';
 
 export default function HomeSetelahLogin({ user, addToCart }) {
   const navigate = useNavigate();
@@ -11,10 +10,10 @@ export default function HomeSetelahLogin({ user, addToCart }) {
 
   // Data produk populer
   const popularProducts = [
-    { id: 1, name: 'Indomie Goreng', price: 3200, discount: 2900, rating: 4, stock: 10, favorite: true, category: 'Sembako', unit: 'pcs' },
-    { id: 2, name: 'Aqua Gelas', price: 22000, discount: 20000, rating: 5, stock: 50, favorite: false, category: 'Minuman', unit: 'dus' },
-    { id: 3, name: 'Lifebuoy Sabun', price: 5000, discount: 4700, rating: 3.5, stock: 15, favorite: true, category: 'Perlengkapan Rumah', unit: 'pcs' },
-    { id: 4, name: 'Minyak Goreng', price: 17000, discount: 15500, rating: 4.5, stock: 8, favorite: false, category: 'Sembako', unit: 'pcs' },
+    { id: 1, name: 'Indomie Goreng', price: 3800, discount: 3500, rating: 4, stock: 10, favorite: true, category: 'Sembako', unit: 'pcs' },
+    { id: 2, name: 'Aqua Gelas', price: 29500, discount: 27500, rating: 5, stock: 50, favorite: false, category: 'Minuman', unit: 'dus' },
+    { id: 3, name: 'Lifebuoy Sabun', price: 6500, discount: 6200, rating: 3.5, stock: 15, favorite: true, category: 'Perlengkapan Rumah', unit: 'pcs' },
+    { id: 4, name: 'Minyak Goreng', price: 23500, discount: 22000, rating: 4.5, stock: 8, favorite: false, category: 'Sembako', unit: 'pcs' },
   ];
 
   // Data kategori dengan slug
@@ -141,7 +140,74 @@ export default function HomeSetelahLogin({ user, addToCart }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {popularProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <motion.div
+                key={product.id}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow relative"
+              >
+                {/* Favorite Button */}
+                <button 
+                  className={`absolute top-2 left-2 p-2 rounded-full ${product.favorite ? 'text-red-500' : 'text-gray-300'} hover:text-red-500`}
+                  // onClick: favorit logic if needed
+                  type="button"
+                >
+                  <Heart 
+                    size={18} 
+                    fill={product.favorite ? 'currentColor' : 'none'} 
+                    stroke="currentColor" 
+                  />
+                </button>
+                {/* Share Button */}
+                <button className="absolute top-2 right-2 p-2 rounded-full text-gray-400 hover:text-blue-600" type="button">
+                  <Share2 size={18} />
+                </button>
+                <div className="bg-blue-100 h-48 flex items-center justify-center">
+                  <ShoppingBag size={48} className="text-gray-300" />
+                  {product.discount && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      DISKON
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-1 text-blue-700">
+                    {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
+                  </h3>
+                  <div className="flex items-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        size={14} 
+                        fill={i < Math.floor(product.rating) ? '#3b82f6' : 'none'} 
+                        stroke={i < product.rating ? '#3b82f6' : '#d1d5db'} 
+                      />
+                    ))}
+                    <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
+                  </div>
+                  <div className="flex items-center">
+                    {product.discount ? (
+                      <>
+                        <span className="text-blue-600 font-bold">Rp{product.discount.toLocaleString()}</span>
+                        <span className="text-sm text-gray-500 line-through ml-2">Rp{product.price.toLocaleString()}</span>
+                      </>
+                    ) : (
+                      <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
+                  <button 
+                    onClick={() => {
+                      addToCart(product);
+                      setShowNotif(true);
+                      setTimeout(() => setShowNotif(false), 1500);
+                    }}
+                    className="mt-3 w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  >
+                    <ShoppingBag size={16} className="mr-2" />
+                    Tambah ke Keranjang
+                  </button>
+                </div>
+              </motion.div>
             ))}
           </div>
         </section>
