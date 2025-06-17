@@ -9,10 +9,10 @@ export default function HomeSebelumLogin() {
 
   // Data produk populer
   const popularProducts = [
-    { id: 1, name: 'Indomie Goreng', price: 3000, discount: 2500, rating: 4.5, stock: 10, favorite: true, category: 'Sembako' },
-    { id: 2, name: 'Aqua Gelas', price: 500, discount: null, rating: 4.8, stock: 50, favorite: false, category: 'Minuman' },
-    { id: 3, name: 'Lifebuoy Sabun', price: 4500, discount: 4000, rating: 4.2, stock: 15, favorite: true, category: 'Perlengkapan Rumah' },
-    { id: 4, name: 'Minyak Goreng', price: 15000, discount: 13500, rating: 4.0, stock: 8, favorite: false, category: 'Sembako' },
+    { id: 1, name: 'Indomie Goreng', price: 3200, discount: 2900, rating: 4, stock: 10, favorite: true, category: 'Sembako', unit: 'pcs' },
+    { id: 2, name: 'Aqua Gelas', price: 22000, discount: 20000, rating: 5, stock: 50, favorite: false, category: 'Minuman', unit: 'dus' },
+    { id: 3, name: 'Lifebuoy Sabun', price: 5000, discount: 4700, rating: 3.5, stock: 15, favorite: true, category: 'Perlengkapan Rumah', unit: 'pcs' },
+    { id: 4, name: 'Minyak Goreng', price: 17000, discount: 15500, rating: 4.5, stock: 8, favorite: false, category: 'Sembako', unit: 'pcs' },
   ];
 
   // Fitur Toko
