@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Package, Clock, Check, Truck, X, AlertCircle, UploadCloud, Image as ImageIcon } from 'react-feather';
+import { Package, Clock, Check, Truck, X, AlertCircle, UploadCloud, Image as ImageIcon, Star } from 'react-feather';
 import FooterSetelahLogin from "./footers/FooterSetelahLogin";
 import { useEffect, useState, useRef } from 'react';
 
@@ -8,6 +8,13 @@ const PesananSaya = ({ user }) => {
   const [notif, setNotif] = useState('');
   const [uploadingOrderId, setUploadingOrderId] = useState(null);
   const fileInputRef = useRef(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingOrderId, setRatingOrderId] = useState(null);
+  const [productRatings, setProductRatings] = useState({});
+  const [storeRating, setStoreRating] = useState(0);
+  const [storeRatingGiven, setStoreRatingGiven] = useState(false);
+  const [productComments, setProductComments] = useState({});
+  const [storeComment, setStoreComment] = useState('');
 
   useEffect(() => {
     const storedOrders = JSON.parse(localStorage.getItem('orders')) || [];
@@ -17,6 +24,30 @@ const PesananSaya = ({ user }) => {
       : [];
     setOrders(userOrders);
   }, [user]);
+
+  // Cek jika ada pesanan yang baru saja selesai dan belum dirating
+  useEffect(() => {
+    // Cari order yang baru saja completed dan belum dirating (cek localStorage)
+    const completedOrder = orders.find(
+      o => o.status === 'completed' && !o.rated
+    );
+    if (completedOrder) {
+      setRatingOrderId(completedOrder.id);
+      setShowRatingModal(true);
+      // Siapkan rating produk default
+      const ratings = {};
+      const comments = {};
+      completedOrder.items.forEach(item => {
+        ratings[item.id] = 0;
+        comments[item.id] = '';
+      });
+      setProductRatings(ratings);
+      setProductComments(comments);
+      setStoreRating(0);
+      setStoreComment('');
+      setStoreRatingGiven(false);
+    }
+  }, [orders]);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -98,6 +129,82 @@ const PesananSaya = ({ user }) => {
     );
     localStorage.setItem('orders', JSON.stringify(newAllOrders));
     setNotif('Pesanan telah selesai. Terima kasih!');
+    setTimeout(() => setNotif(''), 2000);
+  };
+
+  // Handler rating produk
+  const handleProductRating = (productId, value) => {
+    setProductRatings(prev => ({ ...prev, [productId]: value }));
+  };
+
+  // Handler rating toko
+  const handleStoreRating = (value) => {
+    setStoreRating(value);
+  };
+
+  // Handler komentar produk
+  const handleProductComment = (productId, value) => {
+    setProductComments(prev => ({ ...prev, [productId]: value }));
+  };
+
+  // Handler komentar toko
+  const handleStoreComment = (value) => {
+    setStoreComment(value);
+  };
+
+  // Simpan rating produk dan toko
+  const handleSubmitRatings = () => {
+    // Simpan rating produk ke localStorage
+    const allProducts = JSON.parse(localStorage.getItem('products')) || [];
+    const updatedProducts = allProducts.map(p => {
+      if (productRatings[p.id]) {
+        let ratings = p.ratings || [];
+        // Update rating user jika sudah pernah rating produk ini
+        const existing = ratings.find(r => r.userEmail === user.email);
+        if (existing) {
+          ratings = ratings.map(r =>
+            r.userEmail === user.email
+              ? { ...r, value: productRatings[p.id], comment: productComments[p.id] }
+              : r
+          );
+        } else {
+          ratings = [...ratings, { userEmail: user.email, value: productRatings[p.id], comment: productComments[p.id] }];
+        }
+        return { ...p, ratings };
+      }
+      return p;
+    });
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
+
+    // Simpan rating toko ke localStorage
+    if (storeRating > 0) {
+      const storeRatings = JSON.parse(localStorage.getItem('storeRatings')) || [];
+      // Satu user hanya satu rating toko, update jika sudah ada
+      const filtered = storeRatings.filter(r => r.userEmail !== user.email);
+      filtered.push({
+        userEmail: user.email,
+        value: storeRating,
+        comment: storeComment,
+        avatar: user.avatar || null, // simpan avatar user
+        name: user.name || '' // simpan nama user
+      });
+      localStorage.setItem('storeRatings', JSON.stringify(filtered));
+      setStoreRatingGiven(true);
+    }
+
+    // Tandai order sudah dirating
+    const allOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const updatedOrders = allOrders.map(order =>
+      order.id === ratingOrderId ? { ...order, rated: true } : order
+    );
+    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+    setOrders(orders.map(order =>
+      order.id === ratingOrderId ? { ...order, rated: true } : order
+    ));
+
+    setShowRatingModal(false);
+    setRatingOrderId(null);
+    setNotif('Terima kasih atas rating Anda!');
     setTimeout(() => setNotif(''), 2000);
   };
 
@@ -254,6 +361,89 @@ const PesananSaya = ({ user }) => {
             </div>
           )}
         </div>
+        {/* Modal Rating Produk & Toko */}
+        {showRatingModal && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-lg w-full relative">
+              <h2 className="text-xl font-bold mb-4 text-blue-700">Beri Rating Pesanan & Toko</h2>
+              <div className="mb-6">
+                <div className="mb-2 font-semibold text-gray-700">Rating Produk:</div>
+                {orders.find(o => o.id === ratingOrderId)?.items.map(item => (
+                  <div key={item.id} className="mb-4">
+                    <div className="flex items-center mb-1">
+                      <span className="mr-2 text-gray-700">{item.name}</span>
+                      {[1,2,3,4,5].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => handleProductRating(item.id, val)}
+                          className="focus:outline-none"
+                        >
+                          <Star
+                            size={22}
+                            className={productRatings[item.id] >= val ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      className="w-full border rounded p-2 text-sm mt-1"
+                      placeholder="Tulis komentar untuk produk ini (opsional)"
+                      value={productComments[item.id]}
+                      onChange={e => handleProductComment(item.id, e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="mb-6">
+                <div className="mb-2 font-semibold text-gray-700">Rating Toko:</div>
+                <div className="flex items-center mb-2">
+                  {[1,2,3,4,5].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => handleStoreRating(val)}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        size={26}
+                        className={storeRating >= val ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                      />
+                    </button>
+                  ))}
+                  {storeRating > 0 && (
+                    <span className="ml-3 text-blue-600 font-semibold">{storeRating} / 5</span>
+                  )}
+                </div>
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  placeholder="Tulis komentar untuk toko (opsional)"
+                  value={storeComment}
+                  onChange={e => handleStoreComment(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  onClick={() => setShowRatingModal(false)}
+                >
+                  Nanti Saja
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-semibold"
+                  onClick={handleSubmitRatings}
+                  disabled={
+                    Object.values(productRatings).some(v => v === 0) || storeRating === 0
+                  }
+                >
+                  Kirim Rating
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.main>
       <FooterSetelahLogin />
     </div>

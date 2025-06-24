@@ -6,6 +6,7 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState("JNE Reguler");
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -56,8 +57,8 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
       status: 'waiting_confirmation',
       items: user.cartItems,
       total: calculateTotal(user.cartItems),
-      delivery: paymentMethod === 'cod' ? 'COD' : 'JNE Reguler',
-      userEmail: user.email // <-- simpan email user
+      delivery: deliveryMethod, // <-- gunakan deliveryMethod yang dipilih user
+      userEmail: user.email
     };
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     if (user.cartItems && user.cartItems.length > 0) {
@@ -167,6 +168,20 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
                   </button>
                   {showPayment && (
                     <div className="mt-4 p-4 bg-blue-50 rounded-lg border">
+                      {/* Pilihan metode pengiriman */}
+                      <h4 className="font-semibold mb-2">Pilih Metode Pengiriman</h4>
+                      <select
+                        className="w-full mb-4 p-2 border rounded"
+                        value={deliveryMethod}
+                        onChange={e => setDeliveryMethod(e.target.value)}
+                      >
+                        <option value="JNE Reguler">JNE Reguler</option>
+                        <option value="J&T Express">J&T Express</option>
+                        <option value="Gojek">Gojek</option>
+                        <option value="Grab">Grab</option>
+                        {/* <option value="COD">COD (Bayar di Tempat)</option> */}
+                      </select>
+                      {/* Pilihan metode pembayaran */}
                       <h4 className="font-semibold mb-2">Pilih Metode Pembayaran</h4>
                       <select className="w-full mb-4 p-2 border rounded" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
                         <option value="">-- Pilih --</option>

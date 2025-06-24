@@ -27,16 +27,28 @@ const Login = ({ onLogin }) => {
 
     // Cek user dari localStorage
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => (u.email === emailOrPhone) && u.password === password);
+    // Cari user berdasarkan email atau phone
+    const user = users.find(
+      u =>
+        (u.email === emailOrPhone || u.phone === emailOrPhone) &&
+        u.password === password
+    );
 
     setTimeout(() => {
       if (user) {
+        // Simpan semua data user yang didaftarkan (name, email, phone, address, avatar, dll)
         const userData = {
           name: user.name,
           email: user.email,
-          avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
+          phone: user.phone,
+          address: user.address,
+          avatar: user.avatar || '',
+          role: user.role || 'user'
         };
         onLogin(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('isLoggedIn', 'true');
+        // Jangan navigate sebelum onLogin selesai
         navigate('/');
       } else if (
         (emailOrPhone === 'admin123' || emailOrPhone === 'admin@tokoanjani.com') &&
@@ -50,23 +62,11 @@ const Login = ({ onLogin }) => {
           avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
         };
         onLogin(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('isLoggedIn', 'true');
         navigate('/');
       } else {
-        // Cek login dummy lama
-        const isEmailLogin = emailOrPhone === 'user@example.com' && password === '123456';
-        const isPhoneLogin = emailOrPhone === '081234567890' && password === 'password';
-        if (isEmailLogin || isPhoneLogin) {
-          const userData = {
-            name: 'Pelanggan Toko Anjani',
-            email: isEmailLogin ? 'user@example.com' : 'user@example.com',
-            phone: isPhoneLogin ? '081234567890' : '081234567890',
-            avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
-          };
-          onLogin(userData);
-          navigate('/');
-        } else {
-          setError('Email/No HP atau password salah');
-        }
+        setError('Email/No HP atau password salah');
       }
       setIsLoading(false);
     }, 1500);

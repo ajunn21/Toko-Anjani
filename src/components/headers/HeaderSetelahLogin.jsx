@@ -82,22 +82,16 @@ const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems, favoritIt
             <div className="relative group">
               <button className="flex items-center space-x-1 hover:bg-blue-600 px-2 py-1 rounded transition-colors duration-200 group/profile">
                 <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-200 shadow group-focus:ring-2 group-focus:ring-blue-300 overflow-hidden">
-                  {/* Tampilkan icon User jika belum upload avatar */}
-                  {user?.avatar
-                    ? (user.avatar.startsWith('data:') ? (
-                        <img
-                          src={user.avatar}
-                          alt="Avatar"
-                          className="w-8 h-8 object-cover rounded-full"
-                        />
-                      ) : (
-                        <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
-                      )
-                    )
-                    : (
-                      <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
-                    )
-                  }
+                  {/* Tampilkan foto user jika sudah upload, jika belum tampilkan icon User */}
+                  {user?.avatar && user.avatar.startsWith('data:') ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || 'User'}
+                      className="w-8 h-8 object-cover rounded-full"
+                    />
+                  ) : (
+                    <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
+                  )}
                 </div>
                 <span className="hidden md:inline text-white group-hover:text-blue-100 font-semibold transition-colors duration-200">{user?.name || 'User'}</span>
               </button>

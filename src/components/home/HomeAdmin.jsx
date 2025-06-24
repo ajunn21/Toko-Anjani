@@ -1,5 +1,5 @@
 // Halaman dashboard admin sederhana
-import { Users, ShoppingCart, LogOut, Package, Star, Check, AlertCircle, Image as ImageIcon, Trash2, Plus, Edit2 } from 'react-feather';
+import { Users, ShoppingCart, LogOut, Package, Star, Check, AlertCircle, Image as ImageIcon, Trash2, Plus, Edit2, X } from 'react-feather';
 import { useEffect, useState } from 'react';
 
 const defaultProducts = [
@@ -30,6 +30,10 @@ const HomeAdmin = ({ user, onLogout }) => {
   // Hanya satu fitur yang tampil: users, orders, atau products
   const [activeSection, setActiveSection] = useState(null);
 
+  // Modal bukti transfer
+  const [showBuktiModal, setShowBuktiModal] = useState(false);
+  const [buktiImage, setBuktiImage] = useState(null);
+
   useEffect(() => {
     const usersData = JSON.parse(localStorage.getItem('users')) || [];
     setUserCount(usersData.length);
@@ -38,10 +42,13 @@ const HomeAdmin = ({ user, onLogout }) => {
     setOrderCount(ordersData.length);
     setOrders(ordersData);
 
-    let productsData = JSON.parse(localStorage.getItem('products'));
-    if (!productsData || productsData.length === 0) {
+    // Hanya isi default jika localStorage belum pernah ada key 'products'
+    let productsData = localStorage.getItem('products');
+    if (productsData === null) {
       productsData = defaultProducts;
       localStorage.setItem('products', JSON.stringify(productsData));
+    } else {
+      productsData = JSON.parse(productsData);
     }
     setProducts(productsData);
   }, []);
@@ -139,8 +146,20 @@ const HomeAdmin = ({ user, onLogout }) => {
       discount: product.discount || '',
       stock: product.stock,
       category: product.category,
-      unit: product.unit
+      unit: product.unit,
+      image: product.image || ''
     });
+  };
+
+  // Tambahkan handler untuk upload gambar saat edit
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      setEditFields(prev => ({ ...prev, image: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleEditFieldChange = (e) => {
@@ -157,7 +176,8 @@ const HomeAdmin = ({ user, onLogout }) => {
             discount: editFields.discount ? Number(editFields.discount) : null,
             stock: Number(editFields.stock),
             category: editFields.category,
-            unit: editFields.unit
+            unit: editFields.unit,
+            image: editFields.image // update image jika ada perubahan
           }
         : p
     );
@@ -328,11 +348,17 @@ const HomeAdmin = ({ user, onLogout }) => {
                         <td className="py-2 px-4">
                           {order.delivery !== 'COD' ? (
                             order.buktiTransfer ? (
-                              <img
-                                src={order.buktiTransfer}
-                                alt="Bukti Transfer"
-                                className="w-20 h-20 object-contain border rounded shadow"
-                              />
+                              <>
+                                <img
+                                  src={order.buktiTransfer}
+                                  alt="Bukti Transfer"
+                                  className="w-20 h-20 object-contain border rounded shadow cursor-pointer"
+                                  onClick={() => {
+                                    setBuktiImage(order.buktiTransfer);
+                                    setShowBuktiModal(true);
+                                  }}
+                                />
+                              </>
                             ) : (
                               <span className="text-red-500 text-xs">Belum diupload</span>
                             )
@@ -406,7 +432,11 @@ const HomeAdmin = ({ user, onLogout }) => {
                               <img
                                 src={order.buktiTransfer}
                                 alt="Bukti Transfer"
-                                className="w-20 h-20 object-contain border rounded shadow"
+                                className="w-20 h-20 object-contain border rounded shadow cursor-pointer"
+                                onClick={() => {
+                                  setBuktiImage(order.buktiTransfer);
+                                  setShowBuktiModal(true);
+                                }}
                               />
                             ) : (
                               <span className="text-red-500 text-xs">Belum diupload</span>
@@ -445,16 +475,35 @@ const HomeAdmin = ({ user, onLogout }) => {
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="bg-blue-50">
+                      <th className="py-2 px-4 text-left font-semibold">Foto</th>
                       <th className="py-2 px-4 text-left font-semibold">Nama</th>
                       <th className="py-2 px-4 text-left font-semibold">Email</th>
+                      <th className="py-2 px-4 text-left font-semibold">No. Telepon</th>
+                      <th className="py-2 px-4 text-left font-semibold">Alamat</th>
                       <th className="py-2 px-4 text-left font-semibold">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((u, idx) => (
                       <tr key={idx} className="border-b">
+                        {/* Foto profil */}
+                        <td className="py-2 px-4">
+                          {u.avatar && u.avatar.startsWith('data:') ? (
+                            <img
+                              src={u.avatar}
+                              alt={u.name}
+                              className="w-10 h-10 object-cover rounded-full border"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">
+                              {(u.name && u.name[0]) || (u.email && u.email[0])}
+                            </div>
+                          )}
+                        </td>
                         <td className="py-2 px-4">{u.name}</td>
                         <td className="py-2 px-4">{u.email}</td>
+                        <td className="py-2 px-4">{u.phone || '-'}</td>
+                        <td className="py-2 px-4">{u.address || '-'}</td>
                         <td className="py-2 px-4">
                           <button
                             className="flex items-center px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
@@ -518,10 +567,26 @@ const HomeAdmin = ({ user, onLogout }) => {
                     <tr key={p.id} className="border-b">
                       {/* Kolom foto produk */}
                       <td className="py-2 px-4">
-                        {p.image ? (
-                          <img src={p.image} alt={p.name} className="w-14 h-14 object-cover rounded border" />
+                        {editProduct === p.id ? (
+                          <div className="flex flex-col items-center">
+                            {editFields.image ? (
+                              <img src={editFields.image} alt={editFields.name} className="w-14 h-14 object-cover rounded border mb-1" />
+                            ) : (
+                              <span className="text-gray-400 text-xs mb-1">Tidak ada foto</span>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="border p-1 rounded text-xs"
+                              onChange={handleEditImageChange}
+                            />
+                          </div>
                         ) : (
-                          <span className="text-gray-400 text-xs">Tidak ada foto</span>
+                          p.image ? (
+                            <img src={p.image} alt={p.name} className="w-14 h-14 object-cover rounded border" />
+                          ) : (
+                            <span className="text-gray-400 text-xs">Tidak ada foto</span>
+                          )
                         )}
                       </td>
                       {editProduct === p.id ? (
@@ -680,6 +745,22 @@ const HomeAdmin = ({ user, onLogout }) => {
             </div>
           )}
         </div>
+
+        {/* Tambahkan modal untuk menampilkan gambar bukti transfer */}
+        {showBuktiModal && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center" onClick={() => setShowBuktiModal(false)}>
+            <div className="bg-white rounded-xl shadow-lg p-4 max-w-lg w-full flex flex-col items-center relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                onClick={() => setShowBuktiModal(false)}
+              >
+                <X size={24} />
+              </button>
+              <img src={buktiImage} alt="Bukti Transfer" className="max-w-full max-h-[70vh] rounded shadow" />
+              <div className="mt-2 text-gray-700 text-sm">Klik di luar gambar untuk menutup</div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

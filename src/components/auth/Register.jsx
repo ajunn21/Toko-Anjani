@@ -41,9 +41,12 @@ const Register = () => {
       email: form.email,
       phone: form.phone,
       address: form.address,
-      password: form.password
+      password: form.password,
+      avatar: '', // default avatar kosong
     });
     localStorage.setItem('users', JSON.stringify(users));
+    // Simpan juga ke localStorage user (agar langsung login jika mau)
+    // localStorage.setItem('user', JSON.stringify({ ...form, avatar: '' }));
     setSuccess('Registrasi berhasil! Silakan login.');
     setTimeout(() => {
       navigate('/login');

@@ -35,6 +35,19 @@ function App() {
     setFavoritItems(storedFavorit);
   }, []);
 
+  // Tambahkan efek sinkronisasi user setelah update profil
+  useEffect(() => {
+    // Sync user state jika ada perubahan di localStorage (misal setelah edit profil)
+    const syncUser = () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData) setUser(userData);
+    };
+    window.addEventListener('storage', syncUser);
+    // Juga sync setiap render (misal setelah edit profil)
+    syncUser();
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
   const handleLogin = (userData) => {
     setUser(userData);
     setIsLoggedIn(true);
@@ -153,7 +166,8 @@ function App() {
             path="/profile"
             element={
               isLoggedIn ? (
-                <ProfilSaya user={user} />
+                // Berikan setUser agar ProfilSaya bisa update state user di App
+                <ProfilSaya user={user} setUser={setUser} />
               ) : (
                 <Navigate to="/login" replace />
               )

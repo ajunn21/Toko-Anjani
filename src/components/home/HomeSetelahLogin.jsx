@@ -8,6 +8,7 @@ export default function HomeSetelahLogin({ user, addToCart }) {
   const navigate = useNavigate();
   const [showNotif, setShowNotif] = useState(false);
   const [popularProducts, setPopularProducts] = useState([]);
+  const [storeRatings, setStoreRatings] = useState([]);
 
   // Fitur Toko
   const storeFeatures = [
@@ -68,6 +69,10 @@ export default function HomeSetelahLogin({ user, addToCart }) {
     // Urutkan dari terbanyak
     productsWithSales.sort((a, b) => b.totalSold - a.totalSold);
     setPopularProducts(productsWithSales.slice(0, 4)); // Tampilkan 4 produk terpopuler
+
+    // Ambil rating toko dari localStorage
+    const storeRatingsData = JSON.parse(localStorage.getItem('storeRatings')) || [];
+    setStoreRatings(storeRatingsData);
   }, []);
 
   // Fungsi untuk navigasi
@@ -179,14 +184,40 @@ export default function HomeSetelahLogin({ user, addToCart }) {
         {/* Apa Kata Pelanggan Kami */}
         <section className="mb-10">
           <h2 className="text-2xl font-extrabold text-blue-700 mb-6">Apa Kata Pelanggan Kami</h2>
-          {testimonials.length === 0 ? (
+          {storeRatings.length === 0 ? (
             <div className="text-gray-400 italic text-center py-12">
               Belum ada testimoni pelanggan.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Render testimoni dari rating user di produk jika ada */}
-              {/* ...bisa dikembangkan jika sudah ada rating... */}
+              {storeRatings.map((r, idx) => (
+                <div key={idx} className="bg-white rounded-xl shadow p-6 flex flex-col">
+                  <div className="flex items-center mb-2">
+                    {/* Avatar user */}
+                    {r.avatar ? (
+                      <img
+                        src={r.avatar}
+                        alt={r.name || r.userEmail}
+                        className="w-8 h-8 object-cover rounded-full border mr-3"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold mr-3">
+                        {(r.name && r.name[0]) || (r.userEmail && r.userEmail[0])}
+                      </div>
+                    )}
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={i < r.value ? "text-yellow-400" : "text-gray-300"}>
+                        <Star size={20} />
+                      </span>
+                    ))}
+                    <span className="ml-2 text-blue-700 font-bold">{r.value} / 5</span>
+                  </div>
+                  <div className="text-gray-700 mb-2 italic">"{r.comment || 'Tidak ada komentar.'}"</div>
+                  <div className="text-xs text-gray-400">
+                    {r.name ? r.name : r.userEmail}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
