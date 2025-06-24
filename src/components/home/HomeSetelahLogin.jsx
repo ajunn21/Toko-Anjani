@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Home, Package, Users, CreditCard, Star, ChevronRight, Clock, Gift, Truck, Heart, Share2 } from 'react-feather';
@@ -7,22 +7,7 @@ import FooterSetelahLogin from '../footers/FooterSetelahLogin';
 export default function HomeSetelahLogin({ user, addToCart }) {
   const navigate = useNavigate();
   const [showNotif, setShowNotif] = useState(false);
-
-  // Data produk populer
-  const popularProducts = [
-    { id: 1, name: 'Indomie Goreng', price: 3800, discount: 3500, rating: 4, stock: 10, favorite: true, category: 'Sembako', unit: 'pcs' },
-    { id: 2, name: 'Aqua Gelas', price: 29500, discount: 27500, rating: 5, stock: 50, favorite: false, category: 'Minuman', unit: 'dus' },
-    { id: 3, name: 'Lifebuoy Sabun', price: 6500, discount: 6200, rating: 3.5, stock: 15, favorite: true, category: 'Perlengkapan Rumah', unit: 'pcs' },
-    { id: 4, name: 'Minyak Goreng', price: 23500, discount: 22000, rating: 4.5, stock: 8, favorite: false, category: 'Sembako', unit: 'pcs' },
-  ];
-
-  // Data kategori dengan slug
-  const categories = [
-    { name: 'Sembako', icon: <Package size={24} />, slug: 'sembako' },
-    { name: 'Minuman', icon: <ShoppingBag size={24} />, slug: 'minuman' },
-    { name: 'Snack', icon: <ShoppingBag size={24} />, slug: 'snack' },
-    { name: 'Perlengkapan Rumah', icon: <Home size={24} />, slug: 'perlengkapan-rumah' }
-  ];
+  const [popularProducts, setPopularProducts] = useState([]);
 
   // Fitur Toko
   const storeFeatures = [
@@ -47,6 +32,43 @@ export default function HomeSetelahLogin({ user, addToCart }) {
       icon: <Gift size={32} className="text-blue-600" />
     }
   ];
+
+  // Ambil semua produk dan testimoni/rating dari localStorage
+  const [testimonials, setTestimonials] = useState([]);
+  useEffect(() => {
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    // Ambil semua rating dari produk
+    const allRatings = [];
+    products.forEach(product => {
+      if (product.ratings && Array.isArray(product.ratings)) {
+        product.ratings.forEach(r => {
+          allRatings.push({
+            productName: product.name,
+            ...r
+          });
+        });
+      }
+    });
+    setTestimonials(allRatings);
+
+    // Hitung produk populer
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    // Buat map id produk ke jumlah pembelian
+    const productSales = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        productSales[item.id] = (productSales[item.id] || 0) + item.quantity;
+      });
+    });
+    // Gabungkan info produk dan jumlah pembelian
+    const productsWithSales = products.map(p => ({
+      ...p,
+      totalSold: productSales[p.id] || 0
+    }));
+    // Urutkan dari terbanyak
+    productsWithSales.sort((a, b) => b.totalSold - a.totalSold);
+    setPopularProducts(productsWithSales.slice(0, 4)); // Tampilkan 4 produk terpopuler
+  }, []);
 
   // Fungsi untuk navigasi
   const goToCategory = (categorySlug) => {
@@ -99,117 +121,37 @@ export default function HomeSetelahLogin({ user, addToCart }) {
           </div>
         </section>
 
-        {/* Categories Section */}
+        {/* Produk Populer */}
         <section className="mb-10">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-extrabold text-blue-700">Kategori</h2>
-            <button 
-              onClick={goToProducts}
-              className="text-blue-600 flex items-center hover:underline font-bold"
-            >
-              Lihat semua <ChevronRight size={18} className="ml-1" />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.map((category, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ y: -5 }}
-                onClick={() => goToCategory(category.slug)}
-                className="bg-gradient-to-br from-blue-200 via-blue-100 to-blue-50 p-6 rounded-2xl shadow-lg text-center cursor-pointer hover:shadow-2xl transition-all border-2 border-blue-200"
-              >
-                <div className="text-blue-500 mb-3 flex justify-center text-3xl">
-                  {category.icon}
-                </div>
-                <h3 className="font-bold text-lg mb-1 text-blue-700">{category.name}</h3>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Popular Products Section */}
-        <section className="mb-10">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-extrabold text-blue-700">Produk Populer</h2>
-            <button 
-              onClick={goToProducts}
-              className="text-blue-600 flex items-center hover:underline font-bold"
-            >
-              Lihat semua <ChevronRight size={18} className="ml-1" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {popularProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow relative"
-              >
-                {/* Favorite Button */}
-                <button 
-                  className={`absolute top-2 left-2 p-2 rounded-full ${product.favorite ? 'text-red-500' : 'text-gray-300'} hover:text-red-500`}
-                  // onClick: favorit logic if needed
-                  type="button"
-                >
-                  <Heart 
-                    size={18} 
-                    fill={product.favorite ? 'currentColor' : 'none'} 
-                    stroke="currentColor" 
-                  />
-                </button>
-                {/* Share Button */}
-                <button className="absolute top-2 right-2 p-2 rounded-full text-gray-400 hover:text-blue-600" type="button">
-                  <Share2 size={18} />
-                </button>
-                <div className="bg-blue-100 h-48 flex items-center justify-center">
-                  <ShoppingBag size={48} className="text-gray-300" />
-                  {product.discount && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      DISKON
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-1 text-blue-700">
-                    {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
-                  </h3>
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={14} 
-                        fill={i < Math.floor(product.rating) ? '#3b82f6' : 'none'} 
-                        stroke={i < product.rating ? '#3b82f6' : '#d1d5db'} 
-                      />
-                    ))}
-                    <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
-                  </div>
-                  <div className="flex items-center">
-                    {product.discount ? (
-                      <>
-                        <span className="text-blue-600 font-bold">Rp{product.discount.toLocaleString()}</span>
-                        <span className="text-sm text-gray-500 line-through ml-2">Rp{product.price.toLocaleString()}</span>
-                      </>
+          <h2 className="text-2xl font-extrabold text-blue-700 mb-6">Produk Populer</h2>
+          {popularProducts.length === 0 ? (
+            <div className="text-gray-400 italic text-center py-8">
+              Belum ada data produk populer.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {popularProducts.map(product => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center">
+                  <div className="w-24 h-24 bg-blue-100 rounded flex items-center justify-center mb-2 overflow-hidden">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded" />
                     ) : (
-                      <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
+                      <ShoppingBag size={40} className="text-blue-400" />
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
-                  <button 
-                    onClick={() => {
-                      addToCart(product);
-                      setShowNotif(true);
-                      setTimeout(() => setShowNotif(false), 1500);
-                    }}
-                    className="mt-3 w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  <h3 className="font-semibold text-blue-800 mb-1 text-center">{product.name}</h3>
+                  <div className="text-blue-600 font-bold mb-1">Rp{(product.discount || product.price).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mb-2">Terjual: {product.totalSold}</div>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors text-sm"
                   >
-                    <ShoppingBag size={16} className="mr-2" />
                     Tambah ke Keranjang
                   </button>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Fitur Toko Section */}
@@ -234,111 +176,19 @@ export default function HomeSetelahLogin({ user, addToCart }) {
           </div>
         </section>
 
-        {/* Testimoni Pelanggan */}
+        {/* Apa Kata Pelanggan Kami */}
         <section className="mb-10">
           <h2 className="text-2xl font-extrabold text-blue-700 mb-6">Apa Kata Pelanggan Kami</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Testimoni 1 */}
-            <div className="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-50 rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-              <div className="flex flex-col md:flex-row items-center">
-                <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                  <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center shadow-lg">
-                    <Users size={48} className="text-blue-600" />
-                  </div>
-                </div>
-                <div className="md:w-2/3 text-center md:text-left">
-                  <blockquote className="text-lg italic text-blue-700 mb-4 font-semibold">
-                    "Toko kelontong ini sangat praktis! Barang lengkap, harga terjangkau, dan pengirimannya cepat. Sudah langganan sejak tahun lalu."
-                  </blockquote>
-                  <p className="font-bold text-blue-700">- Bu Siti, Pelanggan Setia</p>
-                  <div className="flex justify-center md:justify-start mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={20}
-                        className="text-blue-400 fill-blue-400"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+          {testimonials.length === 0 ? (
+            <div className="text-gray-400 italic text-center py-12">
+              Belum ada testimoni pelanggan.
             </div>
-            {/* Testimoni 2 */}
-            <div className="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-50 rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-              <div className="flex flex-col md:flex-row items-center">
-                <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                  <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center shadow-lg">
-                    <Users size={48} className="text-blue-600" />
-                  </div>
-                </div>
-                <div className="md:w-2/3 text-center md:text-left">
-                  <blockquote className="text-lg italic text-blue-700 mb-4 font-semibold">
-                    "Pelayanan ramah, produk selalu fresh, dan harga bersaing. Sangat recommended untuk belanja bulanan!"
-                  </blockquote>
-                  <p className="font-bold text-blue-700">- Pak Budi, Pelanggan Baru</p>
-                  <div className="flex justify-center md:justify-start mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={20}
-                        className="text-blue-400 fill-blue-400"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Render testimoni dari rating user di produk jika ada */}
+              {/* ...bisa dikembangkan jika sudah ada rating... */}
             </div>
-            {/* Testimoni 3 */}
-            <div className="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-50 rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-              <div className="flex flex-col md:flex-row items-center">
-                <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                  <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center shadow-lg">
-                    <Users size={48} className="text-blue-600" />
-                  </div>
-                </div>
-                <div className="md:w-2/3 text-center md:text-left">
-                  <blockquote className="text-lg italic text-blue-700 mb-4 font-semibold">
-                    "Belanja online di sini gampang banget, pengiriman cepat dan CS responsif. Sukses terus Toko Anjani!"
-                  </blockquote>
-                  <p className="font-bold text-blue-700">- Mbak Rina, Ibu Rumah Tangga</p>
-                  <div className="flex justify-center md:justify-start mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={20}
-                        className="text-blue-400 fill-blue-400"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Testimoni 4 */}
-            <div className="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-50 rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-              <div className="flex flex-col md:flex-row items-center">
-                <div className="md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                  <div className="w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center shadow-lg">
-                    <Users size={48} className="text-blue-600" />
-                  </div>
-                </div>
-                <div className="md:w-2/3 text-center md:text-left">
-                  <blockquote className="text-lg italic text-blue-700 mb-4 font-semibold">
-                    "Suka banget sama promo dan diskonnya. Barang selalu sampai tepat waktu dan sesuai pesanan."
-                  </blockquote>
-                  <p className="font-bold text-blue-700">- Sari, Mahasiswa</p>
-                  <div className="flex justify-center md:justify-start mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={20}
-                        className="text-blue-400 fill-blue-400"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </section>
 
         {/* Notifikasi tambah ke keranjang */}

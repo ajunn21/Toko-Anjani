@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ShoppingCart, Menu, User, LogOut, Home, Box } from 'react-feather';
+import { ShoppingCart, Menu, User, LogOut, Home, Box, Heart, Package } from 'react-feather';
 import { Link, useNavigate } from 'react-router-dom';
 import CartSetelahLogin from '../ShoppingCart/CartSetelahLogin';
 
-const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems }) => {
+const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems, favoritItems = [] }) => {
   const navigate = useNavigate();
   const [showCart, setShowCart] = useState(false);
 
@@ -41,9 +41,30 @@ const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems }) => {
               <Box size={18} />
               <span>Produk</span>
             </Link>
+            <Link 
+              to="/orders" 
+              className="flex items-center space-x-1 hover:text-blue-200 transition-colors duration-200"
+            >
+              <Package size={18} />
+              <span>Pesanan Saya</span>
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Produk Favorit Icon (Love) di sebelah cart */}
+            <Link 
+              to="/favorit"
+              className="p-2 rounded-full hover:bg-blue-600 transition-colors duration-200 relative"
+              title="Produk Favorit"
+            >
+              <Heart size={20} className="text-white" />
+              {favoritItems && favoritItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {favoritItems.length}
+                </span>
+              )}
+            </Link>
+
             {/* Shopping Cart Button */}
             <button 
               onClick={() => setShowCart(true)}
@@ -60,8 +81,23 @@ const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems }) => {
             {/* User Dropdown */}
             <div className="relative group">
               <button className="flex items-center space-x-1 hover:bg-blue-600 px-2 py-1 rounded transition-colors duration-200 group/profile">
-                <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-200 shadow group-focus:ring-2 group-focus:ring-blue-300">
-                  <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
+                <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-200 shadow group-focus:ring-2 group-focus:ring-blue-300 overflow-hidden">
+                  {/* Tampilkan icon User jika belum upload avatar */}
+                  {user?.avatar
+                    ? (user.avatar.startsWith('data:') ? (
+                        <img
+                          src={user.avatar}
+                          alt="Avatar"
+                          className="w-8 h-8 object-cover rounded-full"
+                        />
+                      ) : (
+                        <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
+                      )
+                    )
+                    : (
+                      <User size={16} className="text-blue-700 group-hover:text-blue-900 transition-colors duration-200" />
+                    )
+                  }
                 </div>
                 <span className="hidden md:inline text-white group-hover:text-blue-100 font-semibold transition-colors duration-200">{user?.name || 'User'}</span>
               </button>
@@ -71,18 +107,6 @@ const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems }) => {
                   className="block px-4 py-2 text-blue-800 hover:bg-blue-50 hover:text-blue-700 font-medium rounded transition-colors duration-200"
                 >
                   Profil Saya
-                </Link>
-                <Link 
-                  to="/orders" 
-                  className="block px-4 py-2 text-blue-800 hover:bg-blue-50 hover:text-blue-700 font-medium rounded transition-colors duration-200"
-                >
-                  Pesanan Saya
-                </Link>
-                <Link 
-                  to="/favorit" 
-                  className="block px-4 py-2 text-blue-800 hover:bg-blue-50 hover:text-blue-700 font-medium rounded transition-colors duration-200"
-                >
-                  Produk Favorit
                 </Link>
                 <button 
                   onClick={handleLogout}
@@ -115,6 +139,13 @@ const HeaderSetelahLogin = ({ user, onLogout, cartItems, setCartItems }) => {
           >
             <Box size={18} />
             <span>Produk</span>
+          </Link>
+          <Link 
+            to="/orders" 
+            className="flex items-center space-x-1 hover:text-blue-200 transition-colors duration-200"
+          >
+            <Package size={18} />
+            <span>Pesanan Saya</span>
           </Link>
         </div>
       </header>

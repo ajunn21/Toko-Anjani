@@ -49,6 +49,20 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
 
   const handlePayment = () => {
     setPaymentSuccess(true);
+    // Simpan order ke localStorage
+    const order = {
+      id: 'ORD-' + Date.now(),
+      date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+      status: 'waiting_confirmation',
+      items: user.cartItems,
+      total: calculateTotal(user.cartItems),
+      delivery: paymentMethod === 'cod' ? 'COD' : 'JNE Reguler',
+      userEmail: user.email // <-- simpan email user
+    };
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    if (user.cartItems && user.cartItems.length > 0) {
+      localStorage.setItem('orders', JSON.stringify([order, ...orders]));
+    }
     setTimeout(() => {
       setUser({ ...user, cartItems: [] });
       setShowPayment(false);

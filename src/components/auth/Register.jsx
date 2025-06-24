@@ -5,6 +5,8 @@ const Register = () => {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
+    address: '',
     password: '',
     confirmPassword: ''
   });
@@ -20,7 +22,7 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.password || !form.confirmPassword) {
+    if (!form.name || !form.email || !form.phone || !form.address || !form.password || !form.confirmPassword) {
       setError('Semua field harus diisi.');
       return;
     }
@@ -37,6 +39,8 @@ const Register = () => {
     users.push({
       name: form.name,
       email: form.email,
+      phone: form.phone,
+      address: form.address,
       password: form.password
     });
     localStorage.setItem('users', JSON.stringify(users));
@@ -64,6 +68,14 @@ const Register = () => {
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Email</label>
             <input type="email" name="email" value={form.email} onChange={handleChange} className="focus:ring-blue-500 focus:border-blue-500 block w-full px-4 py-3 border border-blue-200 rounded-md shadow-sm placeholder-blue-300 sm:text-sm bg-blue-50" placeholder="contoh@email.com" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-blue-700 mb-1">No. Telepon</label>
+            <input type="text" name="phone" value={form.phone} onChange={handleChange} className="focus:ring-blue-500 focus:border-blue-500 block w-full px-4 py-3 border border-blue-200 rounded-md shadow-sm placeholder-blue-300 sm:text-sm bg-blue-50" placeholder="08xx-xxxx-xxxx" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-blue-700 mb-1">Alamat</label>
+            <textarea name="address" value={form.address} onChange={handleChange} className="focus:ring-blue-500 focus:border-blue-500 block w-full px-4 py-3 border border-blue-200 rounded-md shadow-sm placeholder-blue-300 sm:text-sm bg-blue-50" placeholder="Alamat lengkap" />
           </div>
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Password</label>

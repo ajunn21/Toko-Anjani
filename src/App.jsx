@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Import komponen
 import HomeSebelumLogin from './components/home/HomeSebelumLogin';
 import HomeSetelahLogin from './components/home/HomeSetelahLogin';
+import HomeAdmin from './components/home/HomeAdmin';
 import ProductSebelumLogin from './components/products/ProductSebelumLogin';
 import ProductSetelahLogin from './components/products/ProductSetelahLogin';
 import Login from './components/auth/Login';
@@ -90,6 +91,7 @@ function App() {
     <Router>
       <div className="App">
         {isLoggedIn ? (
+          user?.role === 'admin' ? null : // Admin tidak pakai header user
           <HeaderSetelahLogin user={user} onLogout={handleLogout} cartItems={cartItems} setCartItems={setCartItems} />
         ) : (
           <HeaderSebelumLogin />
@@ -100,7 +102,11 @@ function App() {
             path="/"
             element={
               isLoggedIn ? (
-                <HomeSetelahLogin user={user} addToCart={addToCart} />
+                user?.role === 'admin' ? (
+                  <HomeAdmin user={user} onLogout={handleLogout} />
+                ) : (
+                  <HomeSetelahLogin user={user} addToCart={addToCart} />
+                )
               ) : (
                 <HomeSebelumLogin />
               )

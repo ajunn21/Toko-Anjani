@@ -38,6 +38,19 @@ const Login = ({ onLogin }) => {
         };
         onLogin(userData);
         navigate('/');
+      } else if (
+        (emailOrPhone === 'admin123' || emailOrPhone === 'admin@tokoanjani.com') &&
+        password === 'admin123'
+      ) {
+        // Login admin
+        const userData = {
+          name: 'Admin',
+          email: 'admin@tokoanjani.com',
+          role: 'admin',
+          avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
+        };
+        onLogin(userData);
+        navigate('/');
       } else {
         // Cek login dummy lama
         const isEmailLogin = emailOrPhone === 'user@example.com' && password === '123456';

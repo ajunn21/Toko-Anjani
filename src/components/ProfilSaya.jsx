@@ -1,8 +1,42 @@
 import { motion } from 'framer-motion';
-import { User, Mail, MapPin, Phone, Edit } from 'react-feather';
+import { User, Mail, MapPin, Phone, Edit, Camera } from 'react-feather';
 import FooterSetelahLogin from "./footers/FooterSetelahLogin";
+import { useState, useRef } from 'react';
 
 const ProfilSaya = ({ user }) => {
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const fileInputRef = useRef(null);
+  const [notif, setNotif] = useState('');
+
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      setAvatar(ev.target.result);
+
+      // Simpan ke localStorage user
+      const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+      currentUser.avatar = ev.target.result;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+
+      // Update juga di daftar users
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const updatedUsers = users.map(u =>
+        u.email === currentUser.email ? { ...u, avatar: ev.target.result } : u
+      );
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
+
+      setNotif('Foto profil berhasil diubah!');
+      setTimeout(() => setNotif(''), 1500);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <motion.main
@@ -13,7 +47,12 @@ const ProfilSaya = ({ user }) => {
       >
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-800 mb-8">Profil Saya</h1>
-          
+          {notif && (
+            <div className="mb-4 bg-green-100 text-green-700 px-4 py-2 rounded flex items-center">
+              <CheckCircle size={18} className="mr-2" />
+              {notif}
+            </div>
+          )}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             {/* Profile Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white relative overflow-hidden">
@@ -21,8 +60,23 @@ const ProfilSaya = ({ user }) => {
                 <User size={120} className="text-white" />
               </div>
               <div className="flex items-center space-x-4 relative z-10">
-                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg border-4 border-blue-200">
-                  <User size={40} className="text-blue-600" />
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg border-4 border-blue-200 relative group cursor-pointer" onClick={handleAvatarClick}>
+                  {/* Tampilkan icon User jika belum upload avatar */}
+                  {avatar && avatar.startsWith('data:') ? (
+                    <img src={avatar} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <User size={40} className="text-blue-600" />
+                  )}
+                  <div className="absolute bottom-0 right-0 bg-blue-600 p-1 rounded-full border-2 border-white shadow group-hover:bg-blue-700 transition-colors">
+                    <Camera size={16} className="text-white" />
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleAvatarChange}
+                  />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold drop-shadow-lg">{user?.name || 'Nama Pengguna'}</h2>
