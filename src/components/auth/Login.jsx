@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { Lock, Mail, Smartphone, AlertCircle } from 'react-feather';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
 
 const Login = ({ onLogin }) => {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -71,31 +70,6 @@ const Login = ({ onLogin }) => {
       }
       setIsLoading(false);
     }, 1500);
-  };
-
-  // Handler Google Login
-  const handleGoogleSuccess = (credentialResponse) => {
-    const base64Url = credentialResponse.credential.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join('')
-    );
-    const profile = JSON.parse(jsonPayload);
-    const userData = {
-      name: profile.name,
-      email: profile.email,
-      avatar: profile.picture,
-      role: 'user'
-    };
-    onLogin(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('isLoggedIn', 'true');
-    navigate('/');
   };
 
   return (
@@ -252,14 +226,25 @@ const Login = ({ onLogin }) => {
               </div>
 
               <div className="mt-6 flex justify-center">
-                {/* Hapus tombol custom Google yang tidak berfungsi */}
-                {/* <motion.button ...>...</motion.button> */}
-                {/* Tambahkan GoogleLogin yang berfungsi */}
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError('Login Google gagal')}
-                  width="100%"
-                />
+                {/* Ganti GoogleLogin dengan tombol dummy */}
+                <motion.button
+                  type="button"
+                  disabled
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-400 font-semibold cursor-not-allowed"
+                  whileHover={{ scale: 1 }}
+                  whileTap={{ scale: 1 }}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  <svg className="h-5 w-5 mr-2" viewBox="0 0 48 48">
+                    <g>
+                      <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.7 32.9 30.1 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.5-7.6 19.5-21 0-1.4-.1-2.7-.3-4z"/>
+                      <path fill="#34A853" d="M6.3 14.7l7 5.1C15.2 16.2 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3 15.1 3 7.6 8.8 6.3 14.7z"/>
+                      <path fill="#FBBC05" d="M24 45c5.1 0 9.8-1.7 13.4-4.7l-6.2-5.1C29.1 36.9 26.7 37.5 24 37.5c-6.1 0-11.2-4.1-13-9.6l-7 5.4C7.6 39.2 15.1 45 24 45z"/>
+                      <path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-1.2 3.2-4.1 5.5-7.7 5.5-2.2 0-4.2-.7-5.7-2l-7 5.4C15.2 43.8 19.2 47 24 47c5.5 0 10.5-2.1 14.1-5.5l-6.2-5.1C29.1 36.9 26.7 37.5 24 37.5c-6.1 0-11.2-4.1-13-9.6l-7 5.4C7.6 39.2 15.1 45 24 45z"/>
+                    </g>
+                  </svg>
+                  Google Login (off)
+                </motion.button>
               </div>
             </div>
 
