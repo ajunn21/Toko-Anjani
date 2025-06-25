@@ -34,6 +34,14 @@ const HomeAdmin = ({ user, onLogout }) => {
   const [showBuktiModal, setShowBuktiModal] = useState(false);
   const [buktiImage, setBuktiImage] = useState(null);
 
+  // Tambahkan state untuk tab pesanan
+  const [orderTab, setOrderTab] = useState('orders');
+  // Tambahkan state untuk tab testimoni
+  const [testimoniTab, setTestimoniTab] = useState('store');
+  const [storeRatings, setStoreRatings] = useState([]);
+  const [productRatings, setProductRatings] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+
   useEffect(() => {
     const usersData = JSON.parse(localStorage.getItem('users')) || [];
     setUserCount(usersData.length);
@@ -51,6 +59,28 @@ const HomeAdmin = ({ user, onLogout }) => {
       productsData = JSON.parse(productsData);
     }
     setProducts(productsData);
+
+    // Ambil testimoni toko
+    const storeRatingsData = JSON.parse(localStorage.getItem('storeRatings')) || [];
+    setStoreRatings(storeRatingsData);
+
+    // Ambil semua produk dan rating produk
+    const productsDataAll = JSON.parse(localStorage.getItem('products')) || [];
+    setAllProducts(productsDataAll);
+    // Flatten semua rating produk
+    let ratings = [];
+    productsDataAll.forEach(p => {
+      if (Array.isArray(p.ratings)) {
+        p.ratings.forEach(r => {
+          ratings.push({
+            ...r,
+            productId: p.id,
+            productName: p.name
+          });
+        });
+      }
+    });
+    setProductRatings(ratings);
   }, []);
 
   // Tambah notifikasi setelah aksi
@@ -225,6 +255,30 @@ const HomeAdmin = ({ user, onLogout }) => {
     showNotif('Pesanan berhasil dihapus!');
   };
 
+  // Hapus testimoni toko
+  const handleDeleteStoreRating = (userEmail) => {
+    if (!window.confirm('Yakin ingin menghapus testimoni ini?')) return;
+    const updated = storeRatings.filter(r => r.userEmail !== userEmail);
+    setStoreRatings(updated);
+    localStorage.setItem('storeRatings', JSON.stringify(updated));
+    showNotif('Testimoni berhasil dihapus!');
+  };
+
+  // Hapus rating produk
+  const handleDeleteProductRating = (productId, userEmail) => {
+    if (!window.confirm('Yakin ingin menghapus rating produk ini?')) return;
+    // Update di localStorage products
+    const updatedProducts = allProducts.map(p => {
+      if (p.id === productId && Array.isArray(p.ratings)) {
+        return { ...p, ratings: p.ratings.filter(r => r.userEmail !== userEmail) };
+      }
+      return p;
+    });
+    setProducts(updatedProducts);
+    localStorage.setItem('products', JSON.stringify(updatedProducts));
+    showNotif('Rating produk berhasil dihapus!');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-100 via-blue-50 to-orange-50">
       <header className="bg-blue-800 text-white px-6 py-4 flex justify-between items-center shadow-2xl">
@@ -249,7 +303,7 @@ const HomeAdmin = ({ user, onLogout }) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Card Total User */}
           <div
             className={`bg-white rounded-2xl shadow-xl p-8 flex items-center space-x-4 cursor-pointer hover:bg-blue-100 transition ring-1 ring-blue-100 border border-blue-200 hover:scale-105 duration-200 ${activeSection === 'users' ? 'ring-2 ring-blue-400' : ''}`}
@@ -290,28 +344,40 @@ const HomeAdmin = ({ user, onLogout }) => {
               <div className="text-gray-600 font-medium">Produk</div>
             </div>
           </div>
+          {/* Card Testimoni */}
+          <div
+            className={`bg-white rounded-2xl shadow-xl p-8 flex items-center space-x-4 cursor-pointer hover:bg-pink-100 transition ring-1 ring-pink-100 border border-pink-200 hover:scale-105 duration-200 ${activeSection === 'testimoni' ? 'ring-2 ring-pink-400' : ''}`}
+            onClick={() => setActiveSection(activeSection === 'testimoni' ? null : 'testimoni')}
+            title="Klik untuk lihat/kelola testimoni"
+          >
+            <Star size={40} className="text-pink-500 drop-shadow" />
+            <div>
+              <div className="text-3xl font-bold">{storeRatings.length + productRatings.length}</div>
+              <div className="text-gray-600 font-medium">Testimoni</div>
+            </div>
+          </div>
         </div>
 
         {/* Tombol navigasi section pesanan */}
         {activeSection === 'orders' && (
           <div className="flex gap-4 mb-4">
             <button
-              className={`px-4 py-2 rounded font-semibold ${!activeSection || activeSection === 'orders' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => setActiveSection('orders')}
+              className={`px-4 py-2 rounded font-semibold ${orderTab === 'orders' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setOrderTab('orders')}
             >
               Semua Pesanan
             </button>
             <button
-              className={`px-4 py-2 rounded font-semibold ${activeSection === 'history' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => setActiveSection('history')}
+              className={`px-4 py-2 rounded font-semibold ${orderTab === 'history' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setOrderTab('history')}
             >
               Riwayat Pesanan
             </button>
           </div>
         )}
 
-        {/* Daftar Semua Pesanan (toggle) */}
-        {activeSection === 'orders' && (
+        {/* Daftar Semua Pesanan (tab) */}
+        {activeSection === 'orders' && orderTab === 'orders' && (
           <div className="bg-white rounded-2xl shadow-xl p-8 mt-6">
             <h2 className="text-xl font-bold mb-4 text-blue-700">Semua Pesanan</h2>
             {orders.filter(order => order.status !== 'completed' && order.status !== 'cancelled').length === 0 ? (
@@ -400,8 +466,8 @@ const HomeAdmin = ({ user, onLogout }) => {
           </div>
         )}
 
-        {/* Riwayat Pesanan (toggle) */}
-        {activeSection === 'history' && (
+        {/* Riwayat Pesanan (tab) */}
+        {activeSection === 'orders' && orderTab === 'history' && (
           <div className="bg-white rounded-2xl shadow-xl p-8 mt-6">
             <h2 className="text-xl font-bold mb-4 text-green-700">Riwayat Pesanan</h2>
             {orders.filter(order => order.status === 'completed' || order.status === 'cancelled').length === 0 ? (
@@ -827,6 +893,126 @@ const HomeAdmin = ({ user, onLogout }) => {
             </div>
           </div>
         )}
+
+        {/* Testimoni & Rating Produk (toggle) */}
+        {activeSection === 'testimoni' && (
+          <div className="bg-white rounded-2xl shadow-2xl p-8 mt-6 border border-pink-200">
+            <h2 className="text-2xl font-bold mb-8 text-pink-700 drop-shadow">Manajemen Testimoni & Rating</h2>
+            {/* Tab switcher */}
+            <div className="flex gap-4 mb-6">
+              <button
+                className={`px-4 py-2 rounded font-semibold ${testimoniTab === 'store' ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                onClick={() => setTestimoniTab('store')}
+              >
+                Testimoni Toko
+              </button>
+              <button
+                className={`px-4 py-2 rounded font-semibold ${testimoniTab === 'produk' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                onClick={() => setTestimoniTab('produk')}
+              >
+                Rating Produk
+              </button>
+            </div>
+            {/* Testimoni Toko */}
+            {testimoniTab === 'store' && (
+              <div>
+                {storeRatings.length === 0 ? (
+                  <div className="text-gray-500">Belum ada testimoni toko.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm border border-pink-200 rounded-xl overflow-hidden shadow">
+                      <thead>
+                        <tr className="bg-pink-100">
+                          <th className="py-3 px-4 text-left font-bold text-pink-800">User</th>
+                          <th className="py-3 px-4 text-left font-bold text-pink-800">Rating</th>
+                          <th className="py-3 px-4 text-left font-bold text-pink-800">Komentar</th>
+                          <th className="py-3 px-4 text-left font-bold text-pink-800">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {storeRatings.map((r, idx) => (
+                          <tr key={idx} className="border-b">
+                            <td className="py-2 px-4 flex items-center gap-2">
+                              {r.avatar && r.avatar.startsWith('data:') ? (
+                                <img src={r.avatar} alt={r.name || r.userEmail} className="w-8 h-8 object-cover rounded-full border" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">
+                                  {(r.name && r.name[0]) || (r.userEmail && r.userEmail[0])}
+                                </div>
+                              )}
+                              <span>{r.name || r.userEmail}</span>
+                            </td>
+                            <td className="py-2 px-4">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} size={16} className={i < r.value ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
+                              ))}
+                              <span className="ml-2 text-pink-700 font-bold">{r.value}/5</span>
+                            </td>
+                            <td className="py-2 px-4">{r.comment || <span className="text-gray-400 italic">-</span>}</td>
+                            <td className="py-2 px-4">
+                              <button
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 shadow font-semibold"
+                                onClick={() => handleDeleteStoreRating(r.userEmail)}
+                              >
+                                Hapus
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Rating Produk */}
+            {testimoniTab === 'produk' && (
+              <div>
+                {productRatings.length === 0 ? (
+                  <div className="text-gray-500">Belum ada rating produk.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm border border-yellow-200 rounded-xl overflow-hidden shadow">
+                      <thead>
+                        <tr className="bg-yellow-100">
+                          <th className="py-3 px-4 text-left font-bold text-yellow-800">Produk</th>
+                          <th className="py-3 px-4 text-left font-bold text-yellow-800">User</th>
+                          <th className="py-3 px-4 text-left font-bold text-yellow-800">Rating</th>
+                          <th className="py-3 px-4 text-left font-bold text-yellow-800">Komentar</th>
+                          <th className="py-3 px-4 text-left font-bold text-yellow-800">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {productRatings.map((r, idx) => (
+                          <tr key={idx} className="border-b">
+                            <td className="py-2 px-4">{r.productName}</td>
+                            <td className="py-2 px-4">{r.userEmail}</td>
+                            <td className="py-2 px-4">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} size={16} className={i < r.value ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
+                              ))}
+                              <span className="ml-2 text-yellow-700 font-bold">{r.value}/5</span>
+                            </td>
+                            <td className="py-2 px-4">{r.comment || <span className="text-gray-400 italic">-</span>}</td>
+                            <td className="py-2 px-4">
+                              <button
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 shadow font-semibold"
+                                onClick={() => handleDeleteProductRating(r.productId, r.userEmail)}
+                              >
+                                Hapus
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
     </div>
   );
