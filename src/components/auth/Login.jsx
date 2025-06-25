@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Lock, Mail, Smartphone, AlertCircle } from 'react-feather';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = ({ onLogin }) => {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -72,9 +73,29 @@ const Login = ({ onLogin }) => {
     }, 1500);
   };
 
-  const handleGoogleLogin = () => {
-    // Implement Google login logic here
-    console.log('Login with Google');
+  // Handler Google Login
+  const handleGoogleSuccess = (credentialResponse) => {
+    const base64Url = credentialResponse.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
+    const profile = JSON.parse(jsonPayload);
+    const userData = {
+      name: profile.name,
+      email: profile.email,
+      avatar: profile.picture,
+      role: 'user'
+    };
+    onLogin(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('isLoggedIn', 'true');
+    navigate('/');
   };
 
   return (
@@ -230,21 +251,15 @@ const Login = ({ onLogin }) => {
                 </div>
               </div>
 
-              <div className="mt-6">
-                <motion.button
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleGoogleLogin}
-                  className="w-full inline-flex justify-center items-center py-2 px-4 border border-blue-200 rounded-md shadow-sm bg-white text-sm font-medium text-blue-700 hover:bg-blue-50"
-                >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M23.7663 12.2764C23.7663 11.4607 23.7001 10.6406 23.559 9.83807H12.2402V14.4591H18.722C18.453 15.9494 17.5888 17.2678 16.3233 18.1056V21.1039H20.1903C22.4611 19.0139 23.7663 15.9274 23.7663 12.2764Z" fill="#4285F4"/>
-                    <path d="M12.2401 24C15.4766 24 18.2059 22.9383 20.1945 21.1039L16.3276 18.1055C15.2517 18.8375 13.8627 19.2519 12.2445 19.2519C9.11388 19.2519 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24 12.2401 24Z" fill="#34A853"/>
-                    <path d="M5.50253 14.3003C5.00011 12.8099 5.00011 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC04"/>
-                    <path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55737 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/>
-                  </svg>
-                  Lanjutkan dengan Google
-                </motion.button>
+              <div className="mt-6 flex justify-center">
+                {/* Hapus tombol custom Google yang tidak berfungsi */}
+                {/* <motion.button ...>...</motion.button> */}
+                {/* Tambahkan GoogleLogin yang berfungsi */}
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Login Google gagal')}
+                  width="100%"
+                />
               </div>
             </div>
 

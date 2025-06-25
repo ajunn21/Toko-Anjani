@@ -7,6 +7,7 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("JNE Reguler");
+  const [showBarcode, setShowBarcode] = useState(false);
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -57,8 +58,9 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
       status: 'waiting_confirmation',
       items: user.cartItems,
       total: calculateTotal(user.cartItems),
-      delivery: deliveryMethod, // <-- gunakan deliveryMethod yang dipilih user
-      userEmail: user.email
+      delivery: deliveryMethod,
+      userEmail: user.email,
+      paymentMethod: paymentMethod
     };
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     if (user.cartItems && user.cartItems.length > 0) {
@@ -68,6 +70,7 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
       setUser({ ...user, cartItems: [] });
       setShowPayment(false);
       setPaymentMethod("");
+      setShowBarcode(false);
       setTimeout(() => setPaymentSuccess(false), 1500);
     }, 1200);
   };
@@ -226,13 +229,53 @@ const CartSetelahLogin = ({ onClose, user, setUser, navigate }) => {
                           <option value="indomaret">Indomaret</option>
                         </select>
                       )}
+                      {/* QRIS barcode */}
+                      {paymentMethod === 'qris' && (
+                        <div className="mb-4 flex flex-col items-center">
+                          <div className="font-semibold mb-2">Scan QRIS untuk Pembayaran</div>
+                          <img
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=TokoAnjani-QRIS"
+                            alt="QRIS Pembayaran"
+                            className="w-40 h-40 bg-white border rounded shadow mb-2"
+                            onClick={() => setShowBarcode(true)}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <div className="text-xs text-gray-500">Klik gambar untuk memperbesar. Scan QRIS ini dengan aplikasi pembayaran Anda.</div>
+                        </div>
+                      )}
                       <button
                         className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 shadow"
-                        onClick={handlePayment}
+                        onClick={() => {
+                          if (paymentMethod === 'qris') {
+                            setShowBarcode(true);
+                            setTimeout(() => handlePayment(), 1200);
+                          } else {
+                            handlePayment();
+                          }
+                        }}
                         disabled={!paymentMethod}
                       >
                         Bayar
                       </button>
+                      {/* QRIS modal jika ingin tampilkan lebih besar */}
+                      {showBarcode && paymentMethod === 'qris' && (
+                        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center" onClick={() => setShowBarcode(false)}>
+                          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center relative">
+                            <button
+                              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                              onClick={() => setShowBarcode(false)}
+                            >
+                              <X size={24} />
+                            </button>
+                            <img
+                              src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TokoAnjani-QRIS"
+                              alt="QRIS Pembayaran"
+                              className="w-60 h-60 bg-white border rounded shadow"
+                            />
+                            <div className="mt-2 text-gray-700 text-sm">Scan QRIS ini untuk membayar</div>
+                          </div>
+                        </div>
+                      )}
                       {paymentSuccess && (
                         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded text-center animate__animated animate__fadeInUp">
                           <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_jbrw3hcz.json' background='transparent' speed='1' style={{width:'60px',height:'60px',margin:'0 auto'}} loop autoplay></lottie-player>
