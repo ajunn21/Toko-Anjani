@@ -356,7 +356,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-100 via-blue-50 to-orange-50">
       {/* Notifikasi Modal */}
       {showNotifModal && notif && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
           <div className={`bg-white px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center space-y-4 animate__animated animate__fadeInDown min-w-[280px] border-2
             ${notifType === 'success' ? 'border-green-400' : 'border-red-400'}`}>
             <span className={notifType === 'success' ? "text-green-600" : "text-red-600"}>
