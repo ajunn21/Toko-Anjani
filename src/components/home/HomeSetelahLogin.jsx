@@ -90,7 +90,6 @@ export default function HomeSetelahLogin({ user, addToCart }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -214,7 +213,11 @@ export default function HomeSetelahLogin({ user, addToCart }) {
                     {/* Tombol aksi */}
                     <div className="flex items-center gap-2 w-full px-6 mb-4">
                       <button
-                        onClick={() => addToCart(product)}
+                        onClick={() => {
+                          addToCart(product);
+                          setShowNotif(true);
+                          setTimeout(() => setShowNotif(false), 1500);
+                        }}
                         disabled={product.stock === 0}
                         className={`flex-1 h-11 rounded-xl flex items-center justify-center font-semibold shadow-lg transition-all duration-200 ${
                           product.stock === 0
@@ -321,7 +324,7 @@ export default function HomeSetelahLogin({ user, addToCart }) {
 
         {/* Notifikasi tambah ke keranjang */}
         {showNotif && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeIn">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeInDown">
             Produk berhasil ditambahkan ke keranjang!
           </div>
         )}

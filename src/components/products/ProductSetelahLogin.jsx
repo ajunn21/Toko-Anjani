@@ -365,14 +365,13 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
             </div>
           </div>
         </section>
+        {/* Notifikasi tambah ke keranjang */}
+        {showNotif && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeInDown">
+            Produk berhasil ditambahkan ke keranjang!
+          </div>
+        )}
       </main>
-
-      {/* Notifikasi tambah ke keranjang */}
-      {showNotif && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeInDown">
-          Produk berhasil ditambahkan ke keranjang!
-        </div>
-      )}
 
       <FooterSetelahLogin />
     </div>
