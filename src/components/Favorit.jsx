@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Heart } from 'react-feather';
+import { Heart, ShoppingBag, Star, X } from 'react-feather';
 
-const Favorit = ({ favoritItems = [] }) => {
+const Favorit = ({ favoritItems = [], removeFromFavorit }) => {
   return (
     <div className="min-h-screen bg-blue-50 flex flex-col">
       <motion.main
@@ -21,14 +21,68 @@ const Favorit = ({ favoritItems = [] }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {/* Render produk favorit di sini */}
             {favoritItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded mb-2" />
-                <h3 className="font-semibold text-blue-800 mb-1">{item.name}</h3>
-                <p className="text-blue-600 font-bold mb-2">Rp {item.price.toLocaleString()}</p>
-                {/* Tambahkan tombol hapus dari favorit jika diinginkan */}
-              </div>
+              <motion.div
+                key={item.id}
+                whileHover={{ y: -6, scale: 1.03 }}
+                className="relative bg-gradient-to-br from-blue-50 via-white to-blue-100 rounded-2xl shadow-xl border border-blue-100 hover:shadow-2xl transition-all duration-200 flex flex-col items-center overflow-hidden"
+              >
+                {/* Favorite Button (remove) */}
+                <button
+                  className="absolute top-2 left-2 p-2 rounded-full text-red-500 bg-white shadow z-20"
+                  onClick={() => removeFromFavorit && removeFromFavorit(item.id)}
+                  title="Hapus dari Favorit"
+                >
+                  <X size={18} />
+                </button>
+                {/* Foto produk */}
+                <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mt-6 mb-3 overflow-hidden border-4 border-blue-200 shadow-lg">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <ShoppingBag size={40} className="text-blue-300" />
+                  )}
+                </div>
+                {/* Nama produk */}
+                <h3 className="font-bold text-blue-800 mb-1 text-center text-lg">{item.name}</h3>
+                {/* Harga */}
+                <div className="mb-1 flex items-center justify-center">
+                  {item.discount ? (
+                    <>
+                      <span className="text-blue-600 font-bold text-lg">Rp{item.discount.toLocaleString()}</span>
+                      <span className="text-xs text-gray-400 line-through ml-2">Rp{item.price.toLocaleString()}</span>
+                    </>
+                  ) : (
+                    <span className="text-blue-600 font-bold text-lg">Rp{item.price.toLocaleString()}</span>
+                  )}
+                  {item.unit && (
+                    <span className="text-xs text-gray-500 ml-2">/ {item.unit}</span>
+                  )}
+                </div>
+                {/* Rating */}
+                <div className="flex items-center mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={18}
+                      className={i < (item.ratings && item.ratings.length > 0
+                        ? Math.round(item.ratings.reduce((sum, r) => sum + r.value, 0) / item.ratings.length)
+                        : 0)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"}
+                    />
+                  ))}
+                  <span className="text-xs text-gray-500 ml-1">
+                    {item.ratings && item.ratings.length > 0
+                      ? (item.ratings.reduce((sum, r) => sum + r.value, 0) / item.ratings.length).toFixed(1)
+                      : '-'}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-1">
+                    ({item.ratings ? item.ratings.length : 0})
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mb-2">Stok: {item.stock}</div>
+              </motion.div>
             ))}
           </div>
         )}

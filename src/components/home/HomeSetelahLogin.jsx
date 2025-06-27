@@ -134,27 +134,124 @@ export default function HomeSetelahLogin({ user, addToCart }) {
               Belum ada data produk populer.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {popularProducts.map(product => (
-                <div key={product.id} className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center">
-                  <div className="w-24 h-24 bg-blue-100 rounded flex items-center justify-center mb-2 overflow-hidden">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded" />
-                    ) : (
-                      <ShoppingBag size={40} className="text-blue-400" />
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-blue-800 mb-1 text-center">{product.name}</h3>
-                  <div className="text-blue-600 font-bold mb-1">Rp{(product.discount || product.price).toLocaleString()}</div>
-                  <div className="text-xs text-gray-500 mb-2">Terjual: {product.totalSold}</div>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors text-sm"
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {popularProducts.map(product => {
+                const ratings = product.ratings || [];
+                const avgRating = ratings.length > 0
+                  ? (ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length)
+                  : 0;
+                // Favorit logic: ambil dari localStorage
+                const favoritItems = JSON.parse(localStorage.getItem('favoritItems')) || [];
+                const isFavorit = favoritItems.find(item => item.id === product.id);
+                return (
+                  <motion.div
+                    key={product.id}
+                    whileHover={{ y: -10, scale: 1.04 }}
+                    className="relative bg-white rounded-3xl shadow-2xl border border-blue-100 hover:shadow-blue-300 transition-all duration-200 flex flex-col items-center overflow-hidden group"
                   >
-                    Tambah ke Keranjang
-                  </button>
-                </div>
-              ))}
+                    {/* Ribbon Diskon */}
+                    {product.discount && (
+                      <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-10 shadow-lg">
+                        DISKON
+                      </div>
+                    )}
+                    {/* Badge Stok Habis / Terjual */}
+                    <div className="absolute top-0 right-0 flex flex-col items-end z-10">
+                      {product.stock === 0 ? (
+                        <div className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg mb-1">
+                          Stok Habis
+                        </div>
+                      ) : null}
+                      <div className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg">
+                        Terjual: {product.totalSold || 0}
+                      </div>
+                    </div>
+                    {/* Foto produk */}
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-100 via-white to-blue-200 flex items-center justify-center mt-6 mb-3 overflow-hidden border-4 border-blue-200 shadow-lg group-hover:scale-110 transition-transform duration-200">
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <ShoppingBag size={48} className="text-blue-300" />
+                      )}
+                    </div>
+                    {/* Nama produk */}
+                    <h3 className="font-bold text-blue-800 mb-1 text-center text-lg group-hover:text-blue-900 transition-colors">
+                      {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
+                    </h3>
+                    {/* Rating rata-rata */}
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className={i < Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                        />
+                      ))}
+                      <span className="text-xs text-gray-500 ml-1">
+                        {ratings.length > 0 ? avgRating.toFixed(1) : '-'}
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">({ratings.length})</span>
+                    </div>
+                    {/* Harga */}
+                    <div className="flex items-center mb-1">
+                      {product.discount ? (
+                        <>
+                          <span className="text-blue-600 font-bold text-lg">Rp{product.discount.toLocaleString()}</span>
+                          <span className="text-xs text-gray-400 line-through ml-2">Rp{product.price.toLocaleString()}</span>
+                        </>
+                      ) : (
+                        <span className="text-blue-600 font-bold text-lg">Rp{product.price.toLocaleString()}</span>
+                      )}
+                      {product.unit && (
+                        <span className="text-xs text-gray-500 ml-2">/ {product.unit}</span>
+                      )}
+                    </div>
+                    {/* Terjual & Stok */}
+                    <div className="flex justify-between w-full px-6 mb-2">
+                      <div className="text-xs text-gray-500">Terjual: {product.totalSold || 0}</div>
+                      <div className="text-xs text-gray-500">Stok: {product.stock}</div>
+                    </div>
+                    {/* Tombol aksi */}
+                    <div className="flex items-center gap-2 w-full px-6 mb-4">
+                      <button
+                        onClick={() => addToCart(product)}
+                        disabled={product.stock === 0}
+                        className={`flex-1 h-11 rounded-xl flex items-center justify-center font-semibold shadow-lg transition-all duration-200 ${
+                          product.stock === 0
+                            ? 'bg-gray-400 cursor-not-allowed text-white'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:scale-105'
+                        }`}
+                        style={{ minHeight: 44, height: 44 }}
+                      >
+                        <ShoppingBag size={26} className="mr-2" />
+                        {product.stock === 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
+                      </button>
+                      <button
+                        className={`h-11 w-11 flex items-center justify-center p-2 rounded-full ${isFavorit ? 'text-red-500' : 'text-gray-300'} hover:text-red-500 bg-white shadow transition`}
+                        onClick={() => {
+                          let updated;
+                          if (isFavorit) {
+                            updated = favoritItems.filter(item => item.id !== product.id);
+                          } else {
+                            updated = [...favoritItems, product];
+                          }
+                          localStorage.setItem('favoritItems', JSON.stringify(updated));
+                          window.dispatchEvent(new Event('storage'));
+                        }}
+                        type="button"
+                        style={{ minHeight: 44, minWidth: 44 }}
+                        aria-label="Tambah ke Favorit"
+                      >
+                        <Heart
+                          size={18}
+                          fill={isFavorit ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                        />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </section>
@@ -224,7 +321,7 @@ export default function HomeSetelahLogin({ user, addToCart }) {
 
         {/* Notifikasi tambah ke keranjang */}
         {showNotif && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeInDown">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate__animated animate__fadeIn">
             Produk berhasil ditambahkan ke keranjang!
           </div>
         )}

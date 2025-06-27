@@ -22,6 +22,9 @@ const ProductSebelumLogin = () => {
     'Lainnya'
   ];
 
+  // Tambahkan unitList
+  const unitList = ["Semua", "pcs", "dus", "pak", "kg", "liter", "box"];
+
   // Ambil produk dari localStorage
   const [products, setProducts] = useState([]);
   useEffect(() => {
@@ -33,12 +36,13 @@ const ProductSebelumLogin = () => {
   const [sortOption, setSortOption] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [selectedUnit, setSelectedUnit] = useState('Semua');
   const productsPerPage = 8;
-  const totalPages = Math.ceil(products.length / productsPerPage);
 
-  // Filter produk berdasarkan kategori
+  // Filter produk berdasarkan kategori dan unit
   let filteredProducts = products.filter(product =>
     (selectedCategory === 'Semua' || product.category === selectedCategory) &&
+    (selectedUnit === 'Semua' || product.unit === selectedUnit) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -48,15 +52,15 @@ const ProductSebelumLogin = () => {
   } else if (sortOption === 'Harga Tertinggi') {
     sortedProducts.sort((a, b) => (b.discount || b.price) - (a.discount || a.price));
   } else if (sortOption === 'Rating Tertinggi') {
-    sortedProducts.sort((a, b) => b.rating - a.rating);
+    sortedProducts.sort((a, b) => (b.rating - a.rating));
   } else if (sortOption === 'Terbaru') {
     sortedProducts.sort((a, b) => b.id - a.id);
   }
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
   const paginatedProducts = sortedProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
 
   return (
     <div className="min-h-screen flex flex-col">
-      
       <main className="flex-grow">
         {/* Product List Section */}
         <section className="py-8">
@@ -84,6 +88,19 @@ const ProductSebelumLogin = () => {
                 >
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                {/* Dropdown unit */}
+                <select
+                  className="py-2 px-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent mb-2 md:mb-0"
+                  value={selectedUnit}
+                  onChange={e => {
+                    setSelectedUnit(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {unitList.map(unit => (
+                    <option key={unit} value={unit}>{unit === "Semua" ? "Semua Satuan" : unit}</option>
                   ))}
                 </select>
                 
@@ -114,56 +131,96 @@ const ProductSebelumLogin = () => {
             </div>
             
             {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {paginatedProducts.map((product) => (
-                <motion.div
-                  key={product.id}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <div className="bg-blue-100 h-48 flex items-center justify-center relative">
-                    <ShoppingBag size={48} className="text-gray-300" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {paginatedProducts.length === 0 ? (
+                <div className="col-span-full text-center text-gray-400 py-12">
+                  Tidak ada produk ditemukan.
+                </div>
+              ) : paginatedProducts.map((product) => {
+                // Hitung rating rata-rata dari array ratings
+                const ratings = product.ratings || [];
+                const avgRating = ratings.length > 0
+                  ? (ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length)
+                  : 0;
+                return (
+                  <motion.div
+                    key={product.id}
+                    whileHover={{ y: -10, scale: 1.04 }}
+                    className="relative bg-white rounded-3xl shadow-2xl border border-blue-100 hover:shadow-blue-300 transition-all duration-200 flex flex-col items-center overflow-hidden group"
+                  >
+                    {/* Ribbon Diskon */}
                     {product.discount && (
-                      <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-10 shadow-lg">
                         DISKON
                       </div>
                     )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-1 text-blue-700">
-                      {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
-                    </h3>
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          size={14} 
-                          fill={i < Math.floor(product.rating) ? '#3b82f6' : 'none'} 
-                          stroke={i < product.rating ? '#3b82f6' : '#d1d5db'} 
-                        />
-                      ))}
-                      <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
+                    {/* Badge Stok Habis / Terjual */}
+                    <div className="absolute top-0 right-0 flex flex-col items-end z-10">
+                      {product.stock === 0 ? (
+                        <div className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg mb-1">
+                          Stok Habis
+                        </div>
+                      ) : null}
+                      <div className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg">
+                        Terjual: {product.totalSold || 0}
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      {product.discount ? (
-                        <>
-                          <span className="text-blue-600 font-bold">Rp{product.discount.toLocaleString()}</span>
-                          <span className="text-sm text-gray-500 line-through ml-2">Rp{product.price.toLocaleString()}</span>
-                        </>
+                    {/* Foto produk */}
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-100 via-white to-blue-200 flex items-center justify-center mt-6 mb-3 overflow-hidden border-4 border-blue-200 shadow-lg group-hover:scale-110 transition-transform duration-200">
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-full" />
                       ) : (
-                        <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
+                        <ShoppingBag size={48} className="text-blue-300" />
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
+                    {/* Nama produk */}
+                    <h3 className="font-bold text-blue-800 mb-1 text-center text-lg group-hover:text-blue-900 transition-colors">
+                      {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
+                    </h3>
+                    {/* Rating rata-rata */}
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className={i < Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                        />
+                      ))}
+                      <span className="text-xs text-gray-500 ml-1">
+                        {ratings.length > 0 ? avgRating.toFixed(1) : '-'}
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">({ratings.length})</span>
+                    </div>
+                    {/* Harga */}
+                    <div className="flex items-center mb-1">
+                      {product.discount ? (
+                        <>
+                          <span className="text-blue-600 font-bold text-lg">Rp{product.discount.toLocaleString()}</span>
+                          <span className="text-xs text-gray-400 line-through ml-2">Rp{product.price.toLocaleString()}</span>
+                        </>
+                      ) : (
+                        <span className="text-blue-600 font-bold text-lg">Rp{product.price.toLocaleString()}</span>
+                      )}
+                      {product.unit && (
+                        <span className="text-xs text-gray-500 ml-2">/ {product.unit}</span>
+                      )}
+                    </div>
+                    {/* Terjual & Stok */}
+                    <div className="flex justify-between w-full px-6 mb-2">
+                      <div className="text-xs text-gray-500">Terjual: {product.totalSold || 0}</div>
+                      <div className="text-xs text-gray-500">Stok: {product.stock}</div>
+                    </div>
+                    {/* Tombol aksi */}
                     <button 
                       onClick={() => navigate('/login')}
-                      className="mt-3 w-full bg-blue-100 text-blue-700 py-2 rounded-md font-medium hover:bg-blue-200 transition-colors"
+                      className="mt-2 w-full bg-blue-100 text-blue-700 py-2 rounded-xl font-medium hover:bg-blue-200 transition-colors mb-4"
+                      style={{ minHeight: 44 }}
                     >
                       Tambah ke Keranjang
                     </button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
             {/* Pagination */}
             <div className="flex justify-center mt-12">

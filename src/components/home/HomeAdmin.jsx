@@ -8,6 +8,42 @@ const defaultProducts = [
   // ...tambahkan produk default lain jika perlu...
 ];
 
+const kategoriList = [
+  "Sembako", "Minuman", "Snack", "Perlengkapan Rumah", "Kopi & Teh", "Susu", "Roti & Biskuit", "Bumbu & Penyedap", "Lainnya"
+];
+const unitList = ["pcs", "dus", "pak", "kg", "liter", "box"];
+const diskonList = [
+  { label: "Tidak Ada Diskon", value: "" },
+  { label: "Diskon 5%", value: 0.05 },
+  { label: "Diskon 10%", value: 0.10 },
+  { label: "Diskon 15%", value: 0.15 },
+  { label: "Diskon 20%", value: 0.20 },
+  { label: "Diskon 25%", value: 0.25 },
+  { label: "Diskon 30%", value: 0.30 },
+  { label: "Diskon 35%", value: 0.35 },
+  { label: "Diskon 40%", value: 0.40 },
+  { label: "Diskon 45%", value: 0.45 },
+  { label: "Diskon 50%", value: 0.50 },
+  { label: "Diskon 55%", value: 0.55 },
+  { label: "Diskon 60%", value: 0.60 },
+  { label: "Diskon 65%", value: 0.65 },
+  { label: "Diskon 70%", value: 0.70 },
+  { label: "Diskon 75%", value: 0.75 },
+  { label: "Diskon 80%", value: 0.80 },
+  { label: "Diskon 85%", value: 0.85 },
+  { label: "Diskon 90%", value: 0.90 },
+  { label: "Diskon 95%", value: 0.95 },
+  { label: "Diskon 100%", value: 1.00 }
+];
+
+const formatNumber = (value) => {
+  if (!value) return '';
+  // Remove non-digit
+  const num = value.toString().replace(/\D/g, '');
+  if (!num) return '';
+  return Number(num).toLocaleString('id-ID');
+};
+
 const HomeAdmin = ({ user, onLogout }) => {
   const [userCount, setUserCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
@@ -26,6 +62,8 @@ const HomeAdmin = ({ user, onLogout }) => {
 
   // Notifikasi
   const [notif, setNotif] = useState('');
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
 
   // Hanya satu fitur yang tampil: users, orders, atau products
   const [activeSection, setActiveSection] = useState(null);
@@ -84,9 +122,10 @@ const HomeAdmin = ({ user, onLogout }) => {
   }, []);
 
   // Tambah notifikasi setelah aksi
-  const showNotif = (msg) => {
+  const showNotif = (msg, type = 'success') => {
     setNotif(msg);
-    setTimeout(() => setNotif(''), 1800);
+    setNotifType(type);
+    setShowNotifModal(true);
   };
 
   // Konfirmasi pesanan oleh admin
@@ -99,7 +138,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     setOrders(updatedOrders);
     setOrderCount(updatedOrders.length);
     localStorage.setItem('orders', JSON.stringify(updatedOrders));
-    showNotif('Pesanan berhasil dikonfirmasi!');
+    showNotif('Pesanan berhasil dikonfirmasi!', 'success');
   };
 
   // Hapus user
@@ -109,7 +148,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     setUsers(updatedUsers);
     setUserCount(updatedUsers.length);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
-    showNotif('User berhasil dihapus!');
+    showNotif('User berhasil dihapus!', 'success');
     // Optional: Jika ingin hapus pesanan user juga, uncomment berikut:
     // const updatedOrders = orders.filter(order => order.userEmail !== email);
     // setOrders(updatedOrders);
@@ -131,20 +170,34 @@ const HomeAdmin = ({ user, onLogout }) => {
   // Tambah produk baru
   const handleAddProduct = (e) => {
     e.preventDefault();
-    if (!newProduct.name || !newProduct.price || !newProduct.stock || !newProduct.category || !newProduct.unit) return;
+    // Validasi field kosong
+    if (
+      !newProduct.name ||
+      !newProduct.price ||
+      !newProduct.stock ||
+      !newProduct.category ||
+      !newProduct.unit
+    ) {
+      showNotif('Semua field produk harus diisi!', 'error');
+      return;
+    }
     const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    let discountValue = null;
+    if (newProduct.discount && !isNaN(Number(newProduct.discount))) {
+      discountValue = Number(newProduct.price) - (Number(newProduct.price) * Number(newProduct.discount));
+    }
     const product = {
       ...newProduct,
       id: newId,
       price: Number(newProduct.price),
-      discount: newProduct.discount ? Number(newProduct.discount) : null,
+      discount: discountValue,
       stock: Number(newProduct.stock)
     };
     const updatedProducts = [...products, product];
     setProducts(updatedProducts);
     localStorage.setItem('products', JSON.stringify(updatedProducts));
     setNewProduct({ name: '', price: '', discount: '', stock: '', category: '', unit: '', image: '' });
-    showNotif('Produk berhasil ditambahkan!');
+    showNotif('Produk berhasil ditambahkan!', 'success');
   };
 
   // Hapus produk
@@ -153,7 +206,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     const updatedProducts = products.filter(p => p.id !== id);
     setProducts(updatedProducts);
     localStorage.setItem('products', JSON.stringify(updatedProducts));
-    showNotif('Produk berhasil dihapus!');
+    showNotif('Produk berhasil dihapus!', 'success');
   };
 
   // Edit stok produk
@@ -205,7 +258,7 @@ const HomeAdmin = ({ user, onLogout }) => {
       !editFields.category ||
       !editFields.unit
     ) {
-      showNotif('Semua field harus diisi!');
+      showNotif('Semua field harus diisi!', 'error');
       return;
     }
     const updatedProducts = products.map(p =>
@@ -226,7 +279,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     localStorage.setItem('products', JSON.stringify(updatedProducts));
     setEditProduct(null);
     setEditFields({});
-    showNotif('Produk berhasil diupdate!');
+    showNotif('Produk berhasil diupdate!', 'success');
   };
 
   const handleCancelEditProduct = () => {
@@ -242,7 +295,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     setOrders(updatedOrders);
     setOrderCount(updatedOrders.length);
     localStorage.setItem('orders', JSON.stringify(updatedOrders));
-    showNotif('Status pesanan berhasil diubah!');
+    showNotif('Status pesanan berhasil diubah!', 'success');
   };
 
   // Fungsi hapus pesanan
@@ -252,7 +305,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     setOrders(updatedOrders);
     setOrderCount(updatedOrders.length);
     localStorage.setItem('orders', JSON.stringify(updatedOrders));
-    showNotif('Pesanan berhasil dihapus!');
+    showNotif('Pesanan berhasil dihapus!', 'success');
   };
 
   // Hapus testimoni toko
@@ -261,7 +314,7 @@ const HomeAdmin = ({ user, onLogout }) => {
     const updated = storeRatings.filter(r => r.userEmail !== userEmail);
     setStoreRatings(updated);
     localStorage.setItem('storeRatings', JSON.stringify(updated));
-    showNotif('Testimoni berhasil dihapus!');
+    showNotif('Testimoni berhasil dihapus!', 'success');
   };
 
   // Hapus rating produk
@@ -276,11 +329,54 @@ const HomeAdmin = ({ user, onLogout }) => {
     });
     setProducts(updatedProducts);
     localStorage.setItem('products', JSON.stringify(updatedProducts));
-    showNotif('Rating produk berhasil dihapus!');
+    showNotif('Rating produk berhasil dihapus!', 'success');
+  };
+
+  const getDiskonLabel = (discount, price) => {
+    if (!discount || !price) return "-";
+    const percent = Math.round((1 - discount / price) * 100);
+    if (percent > 0 && percent < 100) {
+      return `Rp${discount.toLocaleString()} (${percent}% OFF)`;
+    }
+    return `Rp${discount.toLocaleString()}`;
+  };
+
+  // Handler khusus untuk input harga agar auto-format
+  const handlePriceInput = (e) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setNewProduct({ ...newProduct, price: raw });
+  };
+  // Handler khusus untuk edit harga agar auto-format
+  const handleEditPriceInput = (e) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setEditFields({ ...editFields, price: raw });
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-100 via-blue-50 to-orange-50">
+      {/* Notifikasi Modal */}
+      {showNotifModal && notif && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+          <div className={`bg-white px-8 py-6 rounded-xl shadow-2xl flex flex-col items-center space-y-4 animate__animated animate__fadeInDown min-w-[280px] border-2
+            ${notifType === 'success' ? 'border-green-400' : 'border-red-400'}`}>
+            <span className={notifType === 'success' ? "text-green-600" : "text-red-600"}>
+              {notifType === 'success' ? <Check size={28} /> : <X size={28} />}
+            </span>
+            <span className={`text-lg font-semibold text-center ${notifType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{notif}</span>
+            <button
+              className={`mt-2 px-6 py-2 rounded-lg font-semibold shadow hover:opacity-90 transition
+                ${notifType === 'success' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+              onClick={() => {
+                setShowNotifModal(false);
+                setNotif('');
+              }}
+              autoFocus
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
       <header className="bg-blue-800 text-white px-6 py-4 flex justify-between items-center shadow-2xl">
         <div className="text-2xl font-bold tracking-wide drop-shadow-lg">Admin Dashboard</div>
         <div className="flex items-center space-x-4">
@@ -296,12 +392,6 @@ const HomeAdmin = ({ user, onLogout }) => {
       </header>
       <main className="flex-grow container mx-auto px-2 sm:px-4 py-10">
         <h1 className="text-3xl font-bold mb-10 text-blue-800 drop-shadow">Selamat Datang, Admin!</h1>
-        {/* Notifikasi */}
-        {notif && (
-          <div className="mb-8 bg-green-100 text-green-700 px-4 py-2 rounded shadow-lg flex items-center font-semibold border border-green-300 animate-pulse">
-            {notif}
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Card Total User */}
@@ -630,23 +720,64 @@ const HomeAdmin = ({ user, onLogout }) => {
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-yellow-700 mb-1">Harga</label>
-                  <input className="border p-2 rounded bg-white" placeholder="Harga" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+                  <input
+                    className="border p-2 rounded bg-white"
+                    placeholder="Harga"
+                    type="text"
+                    value={formatNumber(newProduct.price)}
+                    onChange={handlePriceInput}
+                  />
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-yellow-700 mb-1">Diskon</label>
-                  <input className="border p-2 rounded bg-white" placeholder="Diskon" type="number" value={newProduct.discount} onChange={e => setNewProduct({ ...newProduct, discount: e.target.value })} />
+                  <select
+                    className="border p-2 rounded bg-white"
+                    name="discount"
+                    value={newProduct.discount}
+                    onChange={e => setNewProduct({ ...newProduct, discount: e.target.value })}
+                  >
+                    {diskonList.map(opt => (
+                      <option key={opt.label} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-yellow-700 mb-1">Stok</label>
-                  <input className="border p-2 rounded bg-white" placeholder="Stok" type="number" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} />
+                  <input
+                    className="border p-2 rounded bg-white"
+                    placeholder="Stok"
+                    type="number"
+                    value={newProduct.stock}
+                    onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })}
+                  />
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-yellow-700 mb-1">Kategori</label>
-                  <input className="border p-2 rounded bg-white" placeholder="Kategori" value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
+                  <select
+                    className="border p-2 rounded bg-white"
+                    name="category"
+                    value={newProduct.category}
+                    onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
+                  >
+                    <option value="">Pilih Kategori</option>
+                    {kategoriList.map(k => (
+                      <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-yellow-700 mb-1">Unit</label>
-                  <input className="border p-2 rounded bg-white" placeholder="Unit" value={newProduct.unit} onChange={e => setNewProduct({ ...newProduct, unit: e.target.value })} />
+                  <select
+                    className="border p-2 rounded bg-white"
+                    name="unit"
+                    value={newProduct.unit}
+                    onChange={e => setNewProduct({ ...newProduct, unit: e.target.value })}
+                  >
+                    <option value="">Pilih Unit</option>
+                    {unitList.map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <button
@@ -711,20 +842,23 @@ const HomeAdmin = ({ user, onLogout }) => {
                           <td className="py-2 px-4">
                             <input
                               name="price"
-                              type="number"
-                              value={editFields.price}
-                              onChange={handleEditFieldChange}
+                              type="text"
+                              value={formatNumber(editFields.price)}
+                              onChange={handleEditPriceInput}
                               className="border p-1 rounded w-20 bg-yellow-50"
                             />
                           </td>
                           <td className="py-2 px-4">
-                            <input
+                            <select
                               name="discount"
-                              type="number"
                               value={editFields.discount}
                               onChange={handleEditFieldChange}
                               className="border p-1 rounded w-20 bg-yellow-50"
-                            />
+                            >
+                              {diskonList.map(opt => (
+                                <option key={opt.label} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
                           </td>
                           <td className="py-2 px-4">
                             <input
@@ -736,20 +870,30 @@ const HomeAdmin = ({ user, onLogout }) => {
                             />
                           </td>
                           <td className="py-2 px-4">
-                            <input
+                            <select
                               name="category"
                               value={editFields.category}
                               onChange={handleEditFieldChange}
                               className="border p-1 rounded w-24 bg-yellow-50"
-                            />
+                            >
+                              <option value="">Pilih Kategori</option>
+                              {kategoriList.map(k => (
+                                <option key={k} value={k}>{k}</option>
+                              ))}
+                            </select>
                           </td>
                           <td className="py-2 px-4">
-                            <input
+                            <select
                               name="unit"
                               value={editFields.unit}
                               onChange={handleEditFieldChange}
                               className="border p-1 rounded w-16 bg-yellow-50"
-                            />
+                            >
+                              <option value="">Pilih Unit</option>
+                              {unitList.map(u => (
+                                <option key={u} value={u}>{u}</option>
+                              ))}
+                            </select>
                           </td>
                           <td className="py-2 px-4 flex flex-col md:flex-row gap-2">
                             <button
@@ -772,7 +916,11 @@ const HomeAdmin = ({ user, onLogout }) => {
                         <>
                           <td className="py-2 px-4 font-semibold">{p.name}</td>
                           <td className="py-2 px-4 text-blue-700 font-bold">Rp{p.price.toLocaleString()}</td>
-                          <td className="py-2 px-4 text-green-700 font-bold">{p.discount ? `Rp${p.discount.toLocaleString()}` : '-'}</td>
+                          <td className="py-2 px-4 text-green-700 font-bold">
+                            {p.discount
+                              ? getDiskonLabel(p.discount, p.price)
+                              : '-'}
+                          </td>
                           <td className="py-2 px-4">{p.stock}</td>
                           <td className="py-2 px-4">{p.category}</td>
                           <td className="py-2 px-4">{p.unit}</td>

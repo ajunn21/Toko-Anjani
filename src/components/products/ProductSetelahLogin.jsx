@@ -18,6 +18,8 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
     'Lainnya'
   ];
 
+  const unitList = ["Semua", "pcs", "dus", "pak", "kg", "liter", "box"];
+
   // Ambil produk dari localStorage
   const [products, setProducts] = useState([]);
   const [popularProducts, setPopularProducts] = useState([]);
@@ -46,13 +48,15 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
   const [sortOption, setSortOption] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [selectedUnit, setSelectedUnit] = useState('Semua');
   const [showNotif, setShowNotif] = useState(false);
   const productsPerPage = 8;
   const totalPages = Math.ceil(products.length / productsPerPage);
 
-  // Filter produk berdasarkan kategori
+  // Filter produk berdasarkan kategori dan unit
   let filteredProducts = products.filter(product =>
     (selectedCategory === 'Semua' || product.category === selectedCategory) &&
+    (selectedUnit === 'Semua' || product.unit === selectedUnit) &&
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -111,6 +115,7 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-grow">
         {/* Produk Populer */}
+        {/* 
         <section className="py-8">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-extrabold text-blue-700 mb-6">Produk Populer</h2>
@@ -121,30 +126,13 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                 {popularProducts.map(product => (
-                  <div key={product.id} className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center">
-                    <div className="w-24 h-24 bg-blue-100 rounded flex items-center justify-center mb-2 overflow-hidden">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded" />
-                      ) : (
-                        <ShoppingBag size={40} className="text-blue-400" />
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-blue-800 mb-1 text-center">{product.name}</h3>
-                    <div className="text-blue-600 font-bold mb-1">Rp{(product.discount || product.price).toLocaleString()}</div>
-                    <div className="text-xs text-gray-500 mb-2">Terjual: {product.totalSold}</div>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors text-sm"
-                    >
-                      Tambah ke Keranjang
-                    </button>
-                  </div>
+                  // ...produk populer card...
                 ))}
               </div>
             )}
           </div>
         </section>
-
+        */}
         <section className="py-8">
           <div className="container mx-auto px-4">
             {/* Breadcrumb */}
@@ -169,6 +157,19 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
                 >
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                {/* Dropdown unit */}
+                <select
+                  className="py-2 px-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent mb-2 md:mb-0"
+                  value={selectedUnit}
+                  onChange={e => {
+                    setSelectedUnit(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {unitList.map(unit => (
+                    <option key={unit} value={unit}>{unit === "Semua" ? "Semua Satuan" : unit}</option>
                   ))}
                 </select>
                 {/* Search dan Sort */}
@@ -198,7 +199,7 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
             </div>
 
             {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {paginatedProducts.map((product) => {
                 // Hitung rating rata-rata
                 const ratings = product.ratings || [];
@@ -209,104 +210,132 @@ const ProductSetelahLogin = ({ user, addToCart, cartItems, addToFavorit, favorit
                 return (
                   <motion.div
                     key={product.id}
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow relative"
+                    whileHover={{ y: -10, scale: 1.04 }}
+                    className="relative bg-white rounded-3xl shadow-2xl border border-blue-100 hover:shadow-blue-300 transition-all duration-200 flex flex-col items-center overflow-hidden group"
                   >
-                    {/* Favorite Button */}
-                    <button 
-                      className={`absolute top-2 left-2 p-2 rounded-full ${favoritItems.find(item => item.id === product.id) ? 'text-red-500' : 'text-gray-300'} hover:text-red-500`}
-                      onClick={() => handleToggleFavorit(product)}
-                    >
-                      <Heart 
-                        size={18} 
-                        fill={favoritItems.find(item => item.id === product.id) ? 'currentColor' : 'none'} 
-                        stroke="currentColor" 
-                      />
-                    </button>
-
-                    {/* Share Button */}
-                    <button className="absolute top-2 right-2 p-2 rounded-full text-gray-400 hover:text-blue-600">
-                      <Share2 size={18} />
-                    </button>
-
-                    <div className="bg-blue-100 h-48 flex items-center justify-center">
-                      <ShoppingBag size={48} className="text-gray-300" />
-                      {product.discount && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          DISKON
+                    {/* Ribbon Diskon */}
+                    {product.discount && (
+                      <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-10 shadow-lg">
+                        DISKON
+                      </div>
+                    )}
+                    {/* Badge Stok Habis / Terjual */}
+                    <div className="absolute top-0 right-0 flex flex-col items-end z-10">
+                      {product.stock === 0 ? (
+                        <div className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg mb-1">
+                          Stok Habis
                         </div>
+                      ) : null}
+                      <div className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg">
+                        Terjual: {product.totalSold || 0}
+                      </div>
+                    </div>
+                    {/* Foto produk */}
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-100 via-white to-blue-200 flex items-center justify-center mt-6 mb-3 overflow-hidden border-4 border-blue-200 shadow-lg group-hover:scale-110 transition-transform duration-200">
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <ShoppingBag size={48} className="text-blue-300" />
                       )}
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 text-blue-700">
-                        {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
-                      </h3>
-                      {/* Rating rata-rata */}
-                      <div className="flex items-center mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={18}
-                            className={i < Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                          />
-                        ))}
-                        <span className="text-xs text-gray-500 ml-1">
-                          {ratings.length > 0 ? avgRating.toFixed(1) : '-'}
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">({ratings.length})</span>
-                      </div>
-                      {/* User rating + avatar */}
-                      <div className="flex items-center mb-2">
-                        <span className="text-xs text-gray-500 mr-2">Rating Anda:</span>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => handleRateProduct(product.id, i + 1)}
-                              className="focus:outline-none"
-                            >
-                              <Star
-                                size={18}
-                                className={i < userRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                              />
-                            </button>
-                          ))}
-                          {userRating > 0 && (
-                            <span className="text-xs text-blue-500 ml-2">({userRating})</span>
-                          )}
-                          {/* Avatar user */}
-                          <span className="ml-2">
-                            {/* Tampilkan icon User jika belum upload avatar */}
-                            {user?.avatar && user.avatar.startsWith('data:') ? (
-                              <img
-                                src={user.avatar}
-                                alt="Avatar"
-                                className="w-6 h-6 object-cover rounded-full inline-block border"
-                              />
-                            ) : (
-                              <UserIcon size={18} className="text-blue-400" />
-                            )}
-                          </span>
-                        </div>
-                      </div>
+                    {/* Nama produk */}
+                    <h3 className="font-bold text-blue-800 mb-1 text-center text-lg group-hover:text-blue-900 transition-colors">
+                      {product.name} <span className="text-xs text-gray-500 font-normal">({product.unit})</span>
+                    </h3>
+                    {/* Rating rata-rata */}
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className={i < Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                        />
+                      ))}
+                      <span className="text-xs text-gray-500 ml-1">
+                        {ratings.length > 0 ? avgRating.toFixed(1) : '-'}
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">({ratings.length})</span>
+                    </div>
+                    {/* User rating + avatar */}
+                    <div className="flex items-center mb-2">
+                      <span className="text-xs text-gray-500 mr-2">Rating Anda:</span>
                       <div className="flex items-center">
-                        {product.discount ? (
-                          <>
-                            <span className="text-blue-600 font-bold">Rp{product.discount.toLocaleString()}</span>
-                            <span className="text-sm text-gray-500 line-through ml-2">Rp{product.price.toLocaleString()}</span>
-                          </>
-                        ) : (
-                          <span className="text-blue-600 font-bold">Rp{product.price.toLocaleString()}</span>
+                        {[...Array(5)].map((_, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => handleRateProduct(product.id, i + 1)}
+                            className="focus:outline-none"
+                          >
+                            <Star
+                              size={18}
+                              className={i < userRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                            />
+                          </button>
+                        ))}
+                        {userRating > 0 && (
+                          <span className="text-xs text-blue-500 ml-2">({userRating})</span>
                         )}
+                        {/* Avatar user */}
+                        <span className="ml-2">
+                          {user?.avatar && user.avatar.startsWith('data:') ? (
+                            <img
+                              src={user.avatar}
+                              alt="Avatar"
+                              className="w-6 h-6 object-cover rounded-full inline-block border"
+                            />
+                          ) : (
+                            <UserIcon size={18} className="text-blue-400" />
+                          )}
+                        </span>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Stok: {product.stock}</div>
-                      <button 
+                    </div>
+                    {/* Harga */}
+                    <div className="flex items-center mb-1">
+                      {product.discount ? (
+                        <>
+                          <span className="text-blue-600 font-bold text-lg">Rp{product.discount.toLocaleString()}</span>
+                          <span className="text-xs text-gray-400 line-through ml-2">Rp{product.price.toLocaleString()}</span>
+                        </>
+                      ) : (
+                        <span className="text-blue-600 font-bold text-lg">Rp{product.price.toLocaleString()}</span>
+                      )}
+                      {product.unit && (
+                        <span className="text-xs text-gray-500 ml-2">/ {product.unit}</span>
+                      )}
+                    </div>
+                    {/* Terjual & Stok */}
+                    <div className="flex justify-between w-full px-6 mb-2">
+                      <div className="text-xs text-gray-500">Terjual: {product.totalSold || 0}</div>
+                      <div className="text-xs text-gray-500">Stok: {product.stock}</div>
+                    </div>
+                    {/* Tombol aksi */}
+                    <div className="flex items-center gap-2 w-full px-6 mb-4">
+                      <button
                         onClick={() => handleAddToCart(product)}
-                        className="mt-3 w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                        disabled={product.stock === 0}
+                        className={`flex-1 h-11 rounded-xl flex items-center justify-center font-semibold shadow-lg transition-all duration-200 ${
+                          product.stock === 0
+                            ? 'bg-gray-400 cursor-not-allowed text-white'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:scale-105'
+                        }`}
+                        style={{ minHeight: 44, height: 44 }}
                       >
-                        <ShoppingBag size={16} className="mr-2" />
-                        Tambah ke Keranjang
+                        <ShoppingBag size={26} className="mr-2" />
+                        {product.stock === 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
+                      </button>
+                      <button
+                        className={`h-11 w-11 flex items-center justify-center p-2 rounded-full ${favoritItems.find(item => item.id === product.id) ? 'text-red-500' : 'text-gray-300'} hover:text-red-500 bg-white shadow transition`}
+                        onClick={() => handleToggleFavorit(product)}
+                        type="button"
+                        style={{ minHeight: 44, minWidth: 44 }}
+                        aria-label="Tambah ke Favorit"
+                      >
+                        <Heart
+                          size={18}
+                          fill={favoritItems.find(item => item.id === product.id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                        />
                       </button>
                     </div>
                   </motion.div>
